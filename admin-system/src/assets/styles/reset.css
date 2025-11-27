@@ -1,0 +1,172 @@
+/* Reset CSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #f0f2f5;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 链接样式 */
+a {
+  color: #1890ff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #40a9ff;
+}
+
+/* 图片样式 */
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+/* 列表样式 */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 表格样式 */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* 输入框样式 */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+/* Firefox 滚动条样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* 滚动条角落 */
+::-webkit-scrollbar-corner {
+  background: #f1f1f1;
+}
+
+/* 清除浮动 */
+.clearfix::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+/* 文本省略 - 单行 */
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 文本省略 - 两行 */
+.ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 文本省略 - 三行 */
+.ellipsis-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 内容溢出处理 */
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.overflow-y-auto {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden;
+}
+
+/* 滚动容器 */
+.scroll-container {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 选中文本样式 */
+::selection {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+::-moz-selection {
+  background-color: #1890ff;
+  color: #fff;
+}

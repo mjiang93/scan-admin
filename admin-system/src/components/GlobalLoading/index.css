@@ -1,0 +1,48 @@
+/**
+ * 全局 Loading 样式
+ */
+
+/* 全局 Loading 容器 */
+.global-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+/* 全屏 Loading */
+.global-loading-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+}
+
+/* 页面级 Loading */
+.page-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  width: 100%;
+}
+
+/* Loading 动画容器 */
+.global-loading .ant-spin,
+.page-loading .ant-spin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Loading 提示文字 */
+.global-loading .ant-spin-text,
+.page-loading .ant-spin-text {
+  color: #1890ff;
+  font-size: 14px;
+  margin-top: 8px;
+}

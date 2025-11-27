@@ -1,0 +1,411 @@
+/* 全局样式 */
+:root {
+  /* 主题色 */
+  --primary-color: #1890ff;
+  --primary-color-hover: #40a9ff;
+  --primary-color-active: #096dd9;
+  
+  /* 功能色 */
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --error-color: #f5222d;
+  --info-color: #1890ff;
+  
+  /* 文字色 */
+  --text-color: #333;
+  --text-secondary: #666;
+  --text-disabled: #999;
+  --text-placeholder: #bfbfbf;
+  
+  /* 边框色 */
+  --border-color: #d9d9d9;
+  --border-color-light: #e8e8e8;
+  
+  /* 背景色 */
+  --bg-color: #f0f2f5;
+  --bg-color-light: #fafafa;
+  --bg-color-white: #fff;
+  
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 6px 16px -8px rgba(0, 0, 0, 0.08), 0 9px 28px 0 rgba(0, 0, 0, 0.05), 0 12px 48px 16px rgba(0, 0, 0, 0.03);
+  
+  /* 响应式断点 */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1600px;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* 圆角 */
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 8px;
+  
+  /* 过渡 */
+  --transition-fast: 0.1s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+}
+
+/* ==================== 响应式断点 ==================== */
+
+/* 超小屏幕 (< 480px) */
+@media (max-width: 479px) {
+  .hide-xs {
+    display: none !important;
+  }
+}
+
+/* 小屏幕 (< 576px) */
+@media (max-width: 575px) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+/* 中等屏幕 (< 768px) - 移动端 */
+@media (max-width: 767px) {
+  .hide-on-mobile,
+  .hide-md {
+    display: none !important;
+  }
+}
+
+/* 大屏幕 (>= 768px) - 桌面端 */
+@media (min-width: 768px) {
+  .show-on-mobile,
+  .show-md {
+    display: none !important;
+  }
+}
+
+/* 大屏幕 (< 992px) */
+@media (max-width: 991px) {
+  .hide-lg {
+    display: none !important;
+  }
+}
+
+/* 超大屏幕 (< 1200px) */
+@media (max-width: 1199px) {
+  .hide-xl {
+    display: none !important;
+  }
+}
+
+/* 超超大屏幕 (< 1600px) */
+@media (max-width: 1599px) {
+  .hide-xxl {
+    display: none !important;
+  }
+}
+
+/* ==================== 文本对齐 ==================== */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-justify {
+  text-align: justify;
+}
+
+/* ==================== 外边距 ==================== */
+.mt-0 { margin-top: 0; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+
+.ml-0 { margin-left: 0; }
+.ml-4 { margin-left: 4px; }
+.ml-8 { margin-left: 8px; }
+.ml-12 { margin-left: 12px; }
+.ml-16 { margin-left: 16px; }
+
+.mr-0 { margin-right: 0; }
+.mr-4 { margin-right: 4px; }
+.mr-8 { margin-right: 8px; }
+.mr-12 { margin-right: 12px; }
+.mr-16 { margin-right: 16px; }
+
+/* ==================== 内边距 ==================== */
+.p-0 { padding: 0; }
+.p-4 { padding: 4px; }
+.p-8 { padding: 8px; }
+.p-10 { padding: 10px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.p-24 { padding: 24px; }
+
+.pt-0 { padding-top: 0; }
+.pt-8 { padding-top: 8px; }
+.pt-16 { padding-top: 16px; }
+
+.pb-0 { padding-bottom: 0; }
+.pb-8 { padding-bottom: 8px; }
+.pb-16 { padding-bottom: 16px; }
+
+.pl-0 { padding-left: 0; }
+.pl-8 { padding-left: 8px; }
+.pl-16 { padding-left: 16px; }
+
+.pr-0 { padding-right: 0; }
+.pr-8 { padding-right: 8px; }
+.pr-16 { padding-right: 16px; }
+
+/* ==================== Flex 布局 ==================== */
+.flex {
+  display: flex;
+}
+
+.flex-inline {
+  display: inline-flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-auto {
+  flex: auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+/* ==================== 宽高 ==================== */
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.min-h-0 {
+  min-height: 0;
+}
+
+/* ==================== 定位 ==================== */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+/* ==================== 显示 ==================== */
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.inline {
+  display: inline;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ==================== 卡片样式 ==================== */
+.card {
+  background: var(--bg-color-white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+}
+
+.card-bordered {
+  border: 1px solid var(--border-color-light);
+}
+
+/* ==================== 内容溢出处理 ==================== */
+.content-overflow-container {
+  overflow: auto;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.content-overflow-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.content-overflow-y {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.content-overflow-scroll {
+  overflow: scroll;
+}
+
+/* 自适应内容容器 */
+.content-adaptive {
+  overflow: auto;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* 表格容器溢出处理 */
+.table-overflow-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 响应式内容溢出处理 */
+@media (max-width: 767px) {
+  .mobile-overflow-auto {
+    overflow: auto;
+  }
+  
+  .mobile-overflow-x-auto {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+/* ==================== 过渡动画 ==================== */
+.transition-all {
+  transition: all var(--transition-normal) ease;
+}
+
+.transition-colors {
+  transition: color var(--transition-normal) ease, background-color var(--transition-normal) ease, border-color var(--transition-normal) ease;
+}
+
+.transition-opacity {
+  transition: opacity var(--transition-normal) ease;
+}
+
+.transition-transform {
+  transition: transform var(--transition-normal) ease;
+}
+
+/* ==================== 鼠标样式 ==================== */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.cursor-default {
+  cursor: default;
+}
+
+/* ==================== 用户选择 ==================== */
+.select-none {
+  user-select: none;
+}
+
+.select-text {
+  user-select: text;
+}
+
+.select-all {
+  user-select: all;
+}

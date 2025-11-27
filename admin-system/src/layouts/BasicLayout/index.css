@@ -1,0 +1,56 @@
+.logo {
+  height: 32px;
+  margin: 16px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 响应式布局样式 */
+.mobile-layout .layout-sider {
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.mobile-layout .layout-content {
+  margin-left: 0 !important;
+}
+
+.mobile-layout .layout-header {
+  position: sticky;
+  top: 0;
+  z-index: 998;
+}
+
+/* 小屏幕适配 */
+@media (max-width: 768px) {
+  .layout-header h2 {
+    font-size: 16px;
+  }
+  
+  .layout-main {
+    margin: 8px !important;
+  }
+  
+  .layout-main > div {
+    padding: 12px !important;
+  }
+}
+
+/* 表格横向滚动 */
+.layout-main .ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* 内容溢出处理 */
+.layout-main {
+  overflow-x: hidden;
+  overflow-y: auto;
+}

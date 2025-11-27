@@ -1,0 +1,85 @@
+/**
+ * 打印页面样式
+ */
+
+.print-page {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+.print-page-content {
+  display: flex;
+  gap: 24px;
+}
+
+.print-form-card {
+  flex: 1;
+  max-width: 500px;
+}
+
+.print-preview-card {
+  flex: 1;
+  min-width: 400px;
+}
+
+.print-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 400px;
+  padding: 24px;
+  background: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+}
+
+.print-preview-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 300px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 响应式布局 */
+@media (max-width: 992px) {
+  .print-page-content {
+    flex-direction: column;
+  }
+
+  .print-form-card,
+  .print-preview-card {
+    max-width: none;
+    min-width: auto;
+  }
+}
+
+/* 打印时隐藏非打印内容 */
+@media print {
+  .print-page {
+    padding: 0;
+    background: #fff;
+  }
+
+  .print-form-card {
+    display: none;
+  }
+
+  .print-preview-card {
+    border: none;
+    box-shadow: none;
+  }
+
+  .print-preview-card .ant-card-head {
+    display: none;
+  }
+
+  .print-preview-container {
+    border: none;
+    background: #fff;
+    padding: 0;
+  }
+}

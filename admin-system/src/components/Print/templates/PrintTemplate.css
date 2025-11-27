@@ -1,0 +1,148 @@
+/**
+ * 打印模板样式
+ */
+
+.print-template {
+  width: 100%;
+  max-width: 400px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.template-header {
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #d9d9d9;
+}
+
+.template-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.template-body {
+  padding: 8px 0;
+}
+
+.barcode-container,
+.qrcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.barcode-container.large svg {
+  max-width: 100%;
+}
+
+.qrcode-container {
+  padding: 8px;
+}
+
+.product-info {
+  padding: 8px 0;
+}
+
+.product-info.compact .info-row {
+  padding: 2px 0;
+}
+
+.product-info.centered {
+  text-align: center;
+}
+
+.info-row {
+  display: flex;
+  padding: 4px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-label {
+  flex-shrink: 0;
+  width: 80px;
+  color: #666;
+}
+
+.info-value {
+  flex: 1;
+  color: #333;
+  word-break: break-all;
+}
+
+.info-value.small {
+  font-size: 12px;
+  color: #666;
+}
+
+.template-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed #d9d9d9;
+}
+
+.remark {
+  font-size: 12px;
+  color: #999;
+}
+
+.remark.small {
+  font-size: 11px;
+}
+
+.barcode-error,
+.qrcode-error {
+  padding: 20px;
+  text-align: center;
+  color: #ff4d4f;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 4px;
+}
+
+/* 打印样式 */
+@media print {
+  .print-template {
+    border: none;
+    box-shadow: none;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .template-header {
+    border-bottom-style: solid;
+  }
+
+  .template-footer {
+    border-top-style: solid;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* 不同模板的特定样式 */
+.inner-barcode-template {
+  max-width: 300px;
+}
+
+.outer-barcode-template {
+  max-width: 400px;
+}
+
+.product-barcode-template {
+  max-width: 350px;
+}
+
+.qrcode-template {
+  max-width: 250px;
+}

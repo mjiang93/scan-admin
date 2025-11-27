@@ -1,0 +1,65 @@
+.user-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-layout-content {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.user-layout-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.user-layout-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.user-layout-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.user-layout-header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+  color: #fff;
+}
+
+.user-layout-main {
+  padding: 32px 24px;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .user-layout-content {
+    max-width: 100%;
+    padding: 16px;
+  }
+  
+  .user-layout-header {
+    padding: 24px 16px;
+  }
+  
+  .user-layout-header h1 {
+    font-size: 24px;
+  }
+  
+  .user-layout-main {
+    padding: 24px 16px;
+  }
+}

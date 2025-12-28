@@ -4,6 +4,7 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { getApiBaseUrl, getConfig } from '@/config';
+import { getToken } from '@/utils/storage';
 
 // 请求队列，用于取消重复请求
 const pendingRequests = new Map<string, AbortController>();
@@ -20,24 +21,31 @@ function generateRequestKey(config: AxiosRequestConfig): string {
  * 添加待处理请求
  */
 function addPendingRequest(config: AxiosRequestConfig): void {
-  const requestKey = generateRequestKey(config);
-  
-  if (pendingRequests.has(requestKey)) {
-    const controller = pendingRequests.get(requestKey);
-    controller?.abort();
-  }
-  
+  // 暂时禁用重复请求取消功能，避免CanceledError问题
+  // 在用户管理场景下，允许重复请求可能更合适
   const controller = new AbortController();
   config.signal = controller.signal;
-  pendingRequests.set(requestKey, controller);
+  
+  // 使用唯一key存储每个请求
+  const uniqueKey = `${generateRequestKey(config)}_${Date.now()}_${Math.random()}`;
+  pendingRequests.set(uniqueKey, controller);
 }
 
 /**
  * 移除待处理请求
  */
 function removePendingRequest(config: AxiosRequestConfig): void {
-  const requestKey = generateRequestKey(config);
-  pendingRequests.delete(requestKey);
+  // 由于使用唯一key，需要查找并删除对应的请求
+  const baseKey = generateRequestKey(config);
+  const keysToDelete: string[] = [];
+  
+  for (const [key] of pendingRequests) {
+    if (key.startsWith(baseKey + '_')) {
+      keysToDelete.push(key);
+    }
+  }
+  
+  keysToDelete.forEach(key => pendingRequests.delete(key));
 }
 
 /**
@@ -71,10 +79,9 @@ const instance: AxiosInstance = axios.create({
  */
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(getConfig('token').key);
+    const token = getToken();
     if (token && config.headers) {
-      // 使用auth字段而不是Authorization
-      config.headers.auth = token;
+      config.headers['token'] = token;
     }
     addPendingRequest(config);
     return config;
@@ -106,7 +113,9 @@ instance.interceptors.response.use(
     if (error.config) {
       removePendingRequest(error.config);
     }
+    // 如果是取消的请求，直接返回错误，不显示错误消息
     if (axios.isCancel(error)) {
+      console.log('请求被取消:', error.message);
       return Promise.reject(error);
     }
     if (!error.response) {

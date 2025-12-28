@@ -9,7 +9,8 @@ import type {
   PrintContentData,
   PrintTemplateType,
   BarcodeQueryParams,
-  BarcodePageResponse,
+  ApiResponse,
+  ApiBarcodeRecord,
 } from '@/types/print';
 import {
   validatePrintContent,
@@ -23,12 +24,12 @@ const MAX_LOGS = 100;
 /**
  * 查询条码记录
  */
-export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): Promise<BarcodePageResponse> {
+export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): Promise<ApiResponse<ApiBarcodeRecord>> {
   const requestParams: BarcodeQueryParams = {
-    page: params.page || 0,
+    page: params.page || 1,
     size: params.size || 10,
-    offset: params.offset || 0,
-    traceId: params.traceId || 'web-query',
+    // offset: params.offset || 0,
+    // traceId: params.traceId || 'web-query',
     ...params,
   };
 
@@ -41,7 +42,7 @@ export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): 
   }
 
   try {
-    const response = await post<BarcodePageResponse>('/pc/page', requestParams);
+    const response = await post<ApiResponse<ApiBarcodeRecord>>('/pc/page', requestParams);
     return response;
   } catch (error) {
     console.error('查询条码记录失败:', error);

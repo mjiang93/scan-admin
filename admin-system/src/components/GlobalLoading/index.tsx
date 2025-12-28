@@ -24,9 +24,24 @@ export function GlobalLoading({ tip = '加载中...', fullscreen = true }: Globa
     return null;
   }
 
+  if (fullscreen) {
+    // 全屏模式使用嵌套方式
+    return (
+      <div className="global-loading global-loading-fullscreen">
+        <Spin size="large" spinning={true} tip={tip}>
+          <div style={{ minHeight: '100px', width: '100px' }} />
+        </Spin>
+      </div>
+    );
+  }
+
+  // 非全屏模式不使用tip，改为自定义文字显示
   return (
-    <div className={`global-loading ${fullscreen ? 'global-loading-fullscreen' : ''}`}>
-      <Spin size="large" tip={tip} />
+    <div className="global-loading">
+      <div className="loading-content">
+        <Spin size="large" />
+        <div className="loading-tip">{tip}</div>
+      </div>
     </div>
   );
 }
@@ -38,7 +53,9 @@ export function GlobalLoading({ tip = '加载中...', fullscreen = true }: Globa
 export function PageLoading({ tip = '页面加载中...' }: { tip?: string }) {
   return (
     <div className="page-loading">
-      <Spin size="large" tip={tip} />
+      <Spin size="large" spinning={true} tip={tip}>
+        <div style={{ minHeight: '200px', width: '100%' }} />
+      </Spin>
     </div>
   );
 }

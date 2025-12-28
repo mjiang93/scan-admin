@@ -8,6 +8,7 @@
 export interface BarcodeRecord {
   key: string;
   id: string;
+  supplierCode: string; // 单据编号
   projectCode: string;
   factoryCode: string;
   productionLine: string;
@@ -28,20 +29,21 @@ export interface BarcodeRecord {
  * 查询参数
  */
 export interface BarcodeQueryParams {
+  supplierCode?: string; // 单据编号
   projectCode?: string;
   factoryCode?: string;
-  productionLine?: string;
-  techVersion?: string;
-  snCode?: string;
+  lineName?: string; // API使用lineName而不是productionLine
+  technicalVersion?: string; // API使用technicalVersion而不是techVersion
+  codeSn?: string; // API使用codeSn而不是snCode
   code09?: string;
   deliveryDateStart?: string;
   deliveryDateEnd?: string;
   templateSnCode?: string;
-  circuitBoardCode?: string;
-  printStatus?: 'pending' | 'printed' | 'completed';
+  materialCode?: string; // API使用materialCode而不是circuitBoardCode
+  printStatus?: 'pending' | 'printed' | 'completed' | number;
   page: number;
   size: number;
-  offset: number;
+  offset?: number;
   traceId?: string;
 }
 
@@ -56,6 +58,52 @@ export interface BarcodePageResponse {
   number: number;
   first: boolean;
   last: boolean;
+}
+
+/**
+ * 实际API响应结构
+ */
+export interface ApiResponse<T = unknown> {
+  code: number;
+  data: {
+    empty: boolean;
+    result: T[];
+    total: number;
+  };
+  errorMsg: string;
+  msg: string;
+  success: boolean;
+}
+
+/**
+ * API返回的原始条码记录数据
+ */
+export interface ApiBarcodeRecord {
+  accessoryCnt: number;
+  btPrintCnt: number;
+  cnt: number;
+  code09: string;
+  codeSn: string;
+  createTime: string;
+  creator: string;
+  deliveryDate: string;
+  drawingVersion: string;
+  factoryCode: string;
+  id: string;
+  lineName: string;
+  materialCode: string;
+  modifier: string;
+  modifiyTime: string | null;
+  nameModel: string;
+  nbzPrintCnt: number;
+  printStatus: number;
+  productionDateEnd: string;
+  productionDateStart: string;
+  projectCode: string;
+  supplierCode: string;
+  technicalVersion: string;
+  unit: string;
+  wbzPrintCnt: number;
 }
 
 /**
@@ -93,7 +141,7 @@ export interface PrintContentData {
   /** 备注 */
   remark?: string;
   /** 额外数据 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

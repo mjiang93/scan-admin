@@ -26,6 +26,7 @@ export default function UserManage() {
   const [searchForm] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [submitting, setSubmitting] = useState(false); // 添加提交状态
   
   // 使用自定义Hook管理用户数据
   const {
@@ -42,22 +43,22 @@ export default function UserManage() {
   // 组件挂载时获取用户列表
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   // 搜索处理
   const onSearch = async () => {
     try {
       const values = await searchForm.validateFields();
       
-      // 过滤空值
+      // 过滤空值，使用正确的API字段名
       const searchParams: UserSearchParams = {};
-      if (values.username?.trim()) {
-        searchParams.username = values.username.trim();
+      if (values.userId?.trim()) {
+        searchParams.userId = values.userId.trim();
       }
-      if (values.realName?.trim()) {
-        searchParams.realName = values.realName.trim();
+      if (values.userName?.trim()) {
+        searchParams.userName = values.userName.trim();
       }
-      if (values.status) {
+      if (values.status !== undefined) {
         searchParams.status = values.status;
       }
       
@@ -69,38 +70,75 @@ export default function UserManage() {
 
   // 新增用户
   const onAdd = () => {
-    setEditingUser(null);
-    form.resetFields();
-    setModalOpen(true);
+    try {
+      console.log('点击添加用户按钮');
+      setEditingUser(null);
+      form.resetFields();
+      setModalOpen(true);
+      console.log('添加用户弹窗已打开');
+    } catch (error) {
+      console.error('添加用户按钮点击错误:', error);
+    }
   };
 
   // 编辑用户
   const onEdit = (user: UserRecord) => {
+    console.log('编辑用户:', user);
     setEditingUser(user);
-    form.setFieldsValue(user);
+    form.setFieldsValue({
+      userId: user.userId,
+      userName: user.userName,
+      status: user.status,
+      password: undefined,
+      confirmPassword: undefined,
+    });
     setModalOpen(true);
   };
 
   // 提交表单
   const onSubmit = async () => {
+    if (submitting) return; // 防止重复提交
+    
     try {
+      console.log('开始提交表单');
+      setSubmitting(true);
       const values = await form.validateFields();
-      const formData: UserFormData = {
-        username: values.username,
-        realName: values.realName,
-        email: values.email,
-        phone: values.phone,
-        status: values.status || 'normal',
-      };
-
+      console.log('表单验证通过，数据:', values);
+      
       if (editingUser) {
+        // 编辑用户逻辑
+        const formData: UserFormData = {
+          userId: values.userId,
+          userName: values.userName,
+          status: values.status !== undefined ? values.status : 0,
+        };
+        if (values.password) {
+          formData.password = values.password;
+        }
+        console.log('更新用户数据:', formData);
         await handleUpdate(editingUser.id, formData);
       } else {
+        // 新增用户
+        const formData: UserFormData = {
+          userId: values.userId,
+          userName: values.userName,
+          password: values.password,
+          status: values.status !== undefined ? values.status : 0,
+        };
+        console.log('创建用户数据:', formData);
         await handleCreate(formData);
       }
+      console.log('用户操作成功');
       setModalOpen(false);
     } catch (error) {
+      // 如果是取消错误，不显示错误消息
+      if (error && typeof error === 'object' && 'name' in error && error.name === 'CanceledError') {
+        console.log('提交请求被取消');
+        return;
+      }
       console.error('提交失败:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -124,22 +162,28 @@ export default function UserManage() {
       },
     },
     {
-      title: '用户名',
-      dataIndex: 'username',
-      key: 'username',
+      title: '用户ID',
+      dataIndex: 'userId',
+      key: 'userId',
       width: 120,
     },
     {
-      title: '姓名',
-      dataIndex: 'realName',
-      key: 'realName',
+      title: '用户名称',
+      dataIndex: 'userName',
+      key: 'userName',
       width: 120,
     },
     {
-      title: '注册时间',
+      title: '创建时间',
       dataIndex: 'registerTime',
       key: 'registerTime',
-      width: 120,
+      width: 160,
+    },
+    {
+      title: '创建者',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: 100,
     },
     {
       title: '状态',
@@ -147,9 +191,9 @@ export default function UserManage() {
       key: 'status',
       width: 80,
       align: 'center',
-      render: (status) => (
-        <Tag color={status === 'normal' ? 'green' : 'orange'}>
-          {status === 'normal' ? '正常' : '禁用'}
+      render: (status: number) => (
+        <Tag color={status === 0 ? 'green' : 'orange'}>
+          {status === 0 ? '正常' : '禁用'}
         </Tag>
       ),
     },
@@ -184,7 +228,7 @@ export default function UserManage() {
         >
           <Row gutter={16} style={{ width: '100%' }}>
             <Col>
-              <Form.Item label="用户名" name="username">
+              <Form.Item label="用户ID" name="userId">
                 <Input 
                   placeholder="模糊查询" 
                   style={{ width: 200 }} 
@@ -194,12 +238,25 @@ export default function UserManage() {
             </Col>
             
             <Col>
-              <Form.Item label="姓名" name="realName">
+              <Form.Item label="用户名称" name="userName">
                 <Input 
                   placeholder="请输入" 
                   style={{ width: 200 }} 
                   allowClear
                 />
+              </Form.Item>
+            </Col>
+            
+            <Col>
+              <Form.Item label="状态" name="status">
+                <Select 
+                  placeholder="请选择" 
+                  style={{ width: 120 }} 
+                  allowClear
+                >
+                  <Option value={0}>正常</Option>
+                  <Option value={1}>禁用</Option>
+                </Select>
               </Form.Item>
             </Col>
             
@@ -230,7 +287,7 @@ export default function UserManage() {
       <Card>
         <Table
           columns={columns}
-          dataSource={users.map(user => ({ ...user, key: user.id }))}
+          dataSource={Array.isArray(users) ? users.map(user => ({ ...user, key: user.id })) : []}
           loading={loading}
           onChange={onTableChange}
           pagination={{
@@ -252,6 +309,8 @@ export default function UserManage() {
         onOk={onSubmit}
         onCancel={() => setModalOpen(false)}
         width={600}
+        confirmLoading={submitting}
+        okButtonProps={{ disabled: submitting }}
       >
         <Form
           form={form}
@@ -259,49 +318,67 @@ export default function UserManage() {
           style={{ marginTop: 16 }}
         >
           <Form.Item
-            label="用户名"
-            name="username"
-            rules={[{ required: true, message: '请输入用户名' }]}
+            label="用户ID"
+            name="userId"
+            rules={[{ required: true, message: '请输入用户ID' }]}
           >
-            <Input placeholder="请输入用户名" />
+            <Input placeholder="请输入用户ID" />
           </Form.Item>
           
           <Form.Item
-            label="姓名"
-            name="realName"
-            rules={[{ required: true, message: '请输入姓名' }]}
+            label="用户名称"
+            name="userName"
+            rules={[{ required: true, message: '请输入用户名称' }]}
           >
-            <Input placeholder="请输入姓名" />
+            <Input placeholder="请输入用户名称" />
           </Form.Item>
           
           <Form.Item
-            label="邮箱"
-            name="email"
+            label="密码"
+            name="password"
             rules={[
-              { type: 'email', message: '请输入有效的邮箱地址' }
+              { required: !editingUser, message: '请输入密码' },
+              { min: 6, message: '密码至少6位' }
             ]}
           >
-            <Input placeholder="请输入邮箱" />
+            <Input.Password placeholder={editingUser ? '留空则不修改密码' : '请输入密码'} />
           </Form.Item>
           
           <Form.Item
-            label="手机号"
-            name="phone"
+            label="密码确认"
+            name="confirmPassword"
+            dependencies={['password']}
             rules={[
-              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' }
+              ...(editingUser ? [] : [{ required: true, message: '请确认密码' }]),
+              ({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
+                validator(_: unknown, value: string) {
+                  const password = getFieldValue('password');
+                  if (!password && !value) {
+                    return Promise.resolve();
+                  }
+                  if (!value && !editingUser) {
+                    return Promise.reject(new Error('请确认密码'));
+                  }
+                  if (password && password !== value) {
+                    return Promise.reject(new Error('密码校验不一致'));
+                  }
+                  return Promise.resolve();
+                },
+              }),
             ]}
           >
-            <Input placeholder="请输入手机号" />
+            <Input.Password placeholder="请再次输入密码" />
           </Form.Item>
           
           <Form.Item
             label="状态"
             name="status"
             rules={[{ required: true, message: '请选择状态' }]}
+            initialValue={0}
           >
             <Select placeholder="请选择状态">
-              <Option value="normal">正常</Option>
-              <Option value="disabled">禁用</Option>
+              <Option value={0}>正常</Option>
+              <Option value={1}>禁用</Option>
             </Select>
           </Form.Item>
         </Form>

@@ -23,26 +23,41 @@
 
 /* 页面级 Loading */
 .page-loading {
-  display: flex;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 300px;
+  align-items: center; */
+  min-height: 80vh;
   width: 100%;
 }
 
-/* Loading 动画容器 */
-.global-loading .ant-spin,
-.page-loading .ant-spin {
+/* 自定义 Loading 内容 */
+.loading-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
 }
 
-/* Loading 提示文字 */
+/* 自定义 Loading 提示文字 */
+.loading-tip {
+  color: #1890ff;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Loading 动画容器 */
+.global-loading .ant-spin-container,
+.page-loading .ant-spin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ant Design Spin 组件的提示文字样式 */
 .global-loading .ant-spin-text,
 .page-loading .ant-spin-text {
   color: #1890ff;
   font-size: 14px;
   margin-top: 8px;
+  white-space: nowrap;
 }

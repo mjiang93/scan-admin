@@ -1,0 +1,194 @@
+/* 条码弹窗样式 */
+.barcode-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.barcode-modal .ant-modal-header {
+  display: none;
+}
+
+.barcode-modal-content {
+  min-height: 500px;
+}
+
+/* 标题区域 */
+.barcode-header {
+  text-align: left;
+  margin-bottom: 24px;
+  padding: 0;
+  border-bottom: none;
+}
+
+.barcode-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.barcode-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.barcode-size {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 二维码区域 */
+.qr-section {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.qr-content {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.qr-code-container {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  padding: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.info-line {
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #666;
+  min-width: 50px;
+}
+
+.info-value {
+  color: #333;
+  font-weight: 400;
+}
+
+/* 条形码区域 */
+.barcode-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.barcode-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.barcode-item svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 底部按钮区域 */
+.modal-footer {
+  text-align: center;
+  padding: 16px 0 0 0;
+}
+
+.print-button {
+  background: #1890ff;
+  border-color: #1890ff;
+  border-radius: 4px;
+  padding: 8px 32px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.print-button:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .qr-content {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .barcode-modal {
+    width: 95% !important;
+    max-width: none !important;
+  }
+  
+  .barcode-modal .ant-modal-body {
+    padding: 16px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .barcode-modal-content {
+    background: white;
+    box-shadow: none;
+  }
+  
+  .qr-section {
+    border: 1px solid #333 !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  
+  .barcode-section {
+    background: white !important;
+  }
+  
+  .barcode-item {
+    border: 1px solid #333 !important;
+    background: white !important;
+    margin: 10px 0 !important;
+  }
+  
+  .barcode-header {
+    border-bottom: 1px solid #333;
+  }
+  
+  .info-label,
+  .info-value {
+    color: #000 !important;
+  }
+  
+  .barcode-title {
+    color: #000 !important;
+  }
+  
+  .barcode-size {
+    color: #333 !important;
+  }
+  
+  .modal-footer {
+    display: none !important;
+  }
+}

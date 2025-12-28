@@ -1,0 +1,181 @@
+.inner-packaging-modal .ant-modal-body {
+  padding: 20px;
+}
+
+.inner-packaging-content {
+  font-family: Arial, sans-serif;
+}
+
+.header-info {
+  margin-bottom: 20px;
+}
+
+.header-info .title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.header-info .subtitle {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.barcode-container {
+  border: 2px solid #1890ff;
+  padding: 20px;
+  background: #fff;
+  display: flex;
+  gap: 20px;
+  min-height: 300px;
+}
+
+.barcode-info {
+  flex: 1;
+}
+
+.part-info {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.part-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.part-value {
+  color: #333;
+}
+
+.barcode-image {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.barcode-placeholder {
+  width: 200px;
+  height: 60px;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.barcode-lines {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  height: 40px;
+}
+
+.barcode-line {
+  width: 2px;
+  height: 40px;
+  background: #000;
+}
+
+.barcode-line:nth-child(odd) {
+  height: 35px;
+}
+
+.barcode-line:nth-child(3n) {
+  height: 30px;
+}
+
+.info-row {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.info-item {
+  display: inline-block;
+}
+
+.info-item.full-width {
+  display: block;
+  width: 100%;
+}
+
+.info-item .label {
+  font-weight: bold;
+  color: #333;
+}
+
+.info-item .value {
+  color: #333;
+}
+
+.qr-code-section {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.qr-code-placeholder {
+  width: 80px;
+  height: 80px;
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 4px;
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 1px;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-dot {
+  background: #fff;
+}
+
+.qr-dot.filled {
+  background: #000;
+}
+
+.right-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 150px;
+}
+
+.right-info .info-item {
+  font-size: 14px;
+}
+
+.supplier-barcode {
+  margin-top: 20px;
+}
+
+.supplier-barcode-lines {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 40px;
+}
+
+.supplier-barcode-line {
+  width: 3px;
+  height: 40px;
+  background: #000;
+}
+
+.supplier-barcode-line:nth-child(even) {
+  height: 35px;
+}
+
+.modal-footer {
+  margin-top: 30px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}

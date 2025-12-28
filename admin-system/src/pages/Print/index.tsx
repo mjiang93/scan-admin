@@ -24,7 +24,10 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { Dayjs } from 'dayjs';
 import { queryBarcodeRecords } from '@/services/print';
-import type { BarcodeRecord, BarcodeQueryParams } from '@/types/print';
+import type { BarcodeRecord, BarcodeQueryParams, ApiBarcodeRecord } from '@/types/print';
+import BarcodeModal from '@/components/BarcodeModal';
+import InnerPackagingModal from '@/components/InnerPackagingModal';
+import OuterPackagingModal from '@/components/OuterPackagingModal';
 import './index.css';
 
 const { RangePicker } = DatePicker;
@@ -41,6 +44,12 @@ export function PrintPage() {
     total: 0,
   });
   
+  // 弹窗状态
+  const [barcodeModalVisible, setBarcodeModalVisible] = useState(false);
+  const [innerPackagingModalVisible, setInnerPackagingModalVisible] = useState(false);
+  const [outerPackagingModalVisible, setOuterPackagingModalVisible] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState<BarcodeRecord | null>(null);
+  
   // 使用ref来存储搜索参数，避免依赖问题
   const searchParamsRef = useRef<Partial<BarcodeQueryParams>>({});
 
@@ -49,25 +58,40 @@ export function PrintPage() {
     setLoading(true);
     try {
       const queryParams: Partial<BarcodeQueryParams> = {
-        page: page - 1,
+        page,
         size: pageSize,
-        offset: (page - 1) * pageSize,
+        // offset: (page - 1) * pageSize,
         ...params,
       };
 
       const response = await queryBarcodeRecords(queryParams);
       
-      // 转换数据格式，添加key字段
-      const records = response.content.map((item, index) => ({
-        ...item,
+      // 转换数据格式，添加key字段，并映射字段名
+      const records = response.data.result.map((item: ApiBarcodeRecord, index: number) => ({
         key: item.id || `${index}`,
+        id: item.id,
+        supplierCode: item.supplierCode, // 单据编号
+        projectCode: item.projectCode,
+        factoryCode: item.factoryCode,
+        productionLine: item.lineName, // API返回lineName，映射到productionLine
+        techVersion: item.technicalVersion, // API返回technicalVersion，映射到techVersion
+        snCode: item.codeSn, // API返回codeSn，映射到snCode
+        code09: item.code09,
+        deliveryDate: item.deliveryDate ? new Date(parseInt(item.deliveryDate)).toLocaleDateString() : '', // 时间戳转换
+        templateSnCode: item.codeSn, // 使用codeSn作为模板SN码
+        circuitBoardCode: item.materialCode, // 使用materialCode作为电路板编号
+        accessories: `${item.accessoryCnt || 0}件`, // 附件数量
+        printStatus: item.printStatus === 0 ? 'pending' : item.printStatus === 1 ? 'printed' : 'completed' as 'pending' | 'printed' | 'completed',
+        printCount: (item.btPrintCnt || 0) + (item.nbzPrintCnt || 0) + (item.wbzPrintCnt || 0), // 总打印次数
+        createTime: item.createTime ? new Date(parseInt(item.createTime)).toLocaleString() : '',
+        remark: item.nameModel || '', // 使用nameModel作为备注
       }));
 
       setDataSource(records);
       setPagination({
         current: page,
         pageSize: pageSize,
-        total: response.totalElements,
+        total: response.data.total,
       });
     } catch (error) {
       message.error('查询失败，请重试');
@@ -98,17 +122,20 @@ export function PrintPage() {
       }
 
       const newSearchParams: Partial<BarcodeQueryParams> = {
+        supplierCode: values.supplierCode,
         projectCode: values.projectCode,
         factoryCode: values.factoryCode,
-        productionLine: values.productionLine,
-        techVersion: values.techVersion,
-        snCode: values.snCode,
+        lineName: values.productionLine, // 映射到API的lineName字段
+        technicalVersion: values.techVersion, // 映射到API的technicalVersion字段
+        codeSn: values.snCode, // 映射到API的codeSn字段
         code09: values.code09,
         deliveryDateStart,
         deliveryDateEnd,
         templateSnCode: values.templateSnCode,
-        circuitBoardCode: values.circuitBoardCode,
-        printStatus: values.printStatus,
+        materialCode: values.circuitBoardCode, // 映射到API的materialCode字段
+        printStatus: values.printStatus ? 
+          (values.printStatus === 'pending' ? 0 : values.printStatus === 'printed' ? 1 : 2) : 
+          undefined,
       };
 
       searchParamsRef.current = newSearchParams;
@@ -163,35 +190,20 @@ export function PrintPage() {
 
   // 本体操作
   const handleBodyOperation = useCallback((record: BarcodeRecord) => {
-    Modal.confirm({
-      title: '本体操作',
-      content: `确定要对项目编码 "${record.projectCode}" 进行本体操作吗？`,
-      onOk: () => {
-        message.success('本体操作成功');
-      }
-    });
+    setCurrentRecord(record);
+    setBarcodeModalVisible(true);
   }, []);
 
   // 内包装操作
   const handleInnerPackaging = useCallback((record: BarcodeRecord) => {
-    Modal.confirm({
-      title: '内包装操作',
-      content: `确定要对项目编码 "${record.projectCode}" 进行内包装操作吗？`,
-      onOk: () => {
-        message.success('内包装操作成功');
-      }
-    });
+    setCurrentRecord(record);
+    setInnerPackagingModalVisible(true);
   }, []);
 
   // 外包装操作
   const handleOuterPackaging = useCallback((record: BarcodeRecord) => {
-    Modal.confirm({
-      title: '外包装操作',
-      content: `确定要对项目编码 "${record.projectCode}" 进行外包装操作吗？`,
-      onOk: () => {
-        message.success('外包装操作成功');
-      }
-    });
+    setCurrentRecord(record);
+    setOuterPackagingModalVisible(true);
   }, []);
 
   // 编辑操作
@@ -212,9 +224,9 @@ export function PrintPage() {
   // 表格列配置
   const columns: ColumnsType<BarcodeRecord> = [
     {
-      title: '序号',
-      dataIndex: 'id',
-      key: 'id',
+      title: '单据编号',
+      dataIndex: 'supplierCode',
+      key: 'supplierCode',
       width: 120,
       fixed: 'left',
     },
@@ -258,7 +270,7 @@ export function PrintPage() {
       title: '送货日期',
       dataIndex: 'deliveryDate',
       key: 'deliveryDate',
-      width: 100,
+      width: 120,
     },
     {
       title: '模板SN码',
@@ -348,6 +360,10 @@ export function PrintPage() {
           layout="inline"
           onFinish={handleSearch}
         >
+          <Form.Item label="单据编号" name="supplierCode">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
           <Form.Item label="项目编码" name="projectCode">
             <Input placeholder="请输入" style={{ width: 150 }} />
           </Form.Item>
@@ -465,6 +481,27 @@ export function PrintPage() {
           onChange={handleTableChange}
         />
       </Card>
+
+      {/* 条码弹窗 */}
+      <BarcodeModal
+        visible={barcodeModalVisible}
+        onClose={() => setBarcodeModalVisible(false)}
+        record={currentRecord}
+      />
+
+      {/* 内包装条码弹窗 */}
+      <InnerPackagingModal
+        visible={innerPackagingModalVisible}
+        onClose={() => setInnerPackagingModalVisible(false)}
+        record={currentRecord}
+      />
+
+      {/* 外包装标签弹窗 */}
+      <OuterPackagingModal
+        visible={outerPackagingModalVisible}
+        onClose={() => setOuterPackagingModalVisible(false)}
+        record={currentRecord}
+      />
     </div>
   );
 }

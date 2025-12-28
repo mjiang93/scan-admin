@@ -1,7 +1,7 @@
 /**
  * 条码打印页面
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Button, 
   Card, 
@@ -22,133 +22,117 @@ import {
   DownloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { Dayjs } from 'dayjs';
+import { queryBarcodeRecords } from '@/services/print';
+import type { BarcodeRecord, BarcodeQueryParams } from '@/types/print';
 import './index.css';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-// 模拟数据类型
-interface BarcodeRecord {
-  key: string;
-  id: string;
-  projectCode: string;
-  factoryCode: string;
-  productionLine: string;
-  techVersion: string;
-  snCode: string;
-  code09: string;
-  deliveryDate: string;
-  templateSnCode: string;
-  circuitBoardCode: string;
-  accessories: string;
-  printStatus: 'pending' | 'printed' | 'completed';
-  printCount: number;
-  createTime: string;
-  remark?: string;
-}
-
-// 模拟数据
-const mockData: BarcodeRecord[] = [
-  {
-    key: '1',
-    id: 'XSD241004500001',
-    projectCode: '000011871',
-    factoryCode: '258881900004001',
-    productionLine: 'H3',
-    techVersion: 'V1.0',
-    snCode: 'S000012440119P302A01R652PA01',
-    code09: '099302A01R652A01J1124A01G1',
-    deliveryDate: '2025-8-30',
-    templateSnCode: '936ZA01R65',
-    circuitBoardCode: 'A001',
-    accessories: '2',
-    printStatus: 'printed',
-    printCount: 1,
-    createTime: '2024-12-28 09:30:21',
-    remark: 'A001'
-  },
-  {
-    key: '2',
-    id: 'XSD241004500002',
-    projectCode: '000011872',
-    factoryCode: '258881900004002',
-    productionLine: 'H3',
-    techVersion: 'V1.0',
-    snCode: 'S000012440119P302A01R652PA02',
-    code09: '099302A01R652A01J1124A01G2',
-    deliveryDate: '2025-8-30',
-    templateSnCode: '936ZA01R66',
-    circuitBoardCode: 'A002',
-    accessories: '1',
-    printStatus: 'printed',
-    printCount: 2,
-    createTime: '2024-12-28 09:30:22',
-    remark: 'A002'
-  },
-  {
-    key: '3',
-    id: 'XSD241004500003',
-    projectCode: '000011873',
-    factoryCode: '258881900004003',
-    productionLine: 'H4',
-    techVersion: 'V1.1',
-    snCode: 'S000012440119P302A01R652PA03',
-    code09: '099302A01R652A01J1124A01G3',
-    deliveryDate: '2025-8-29',
-    templateSnCode: '936ZA01R67',
-    circuitBoardCode: 'A003',
-    accessories: '3',
-    printStatus: 'pending',
-    printCount: 0,
-    createTime: '2024-12-27 15:20:30',
-    remark: 'B001'
-  },
-  {
-    key: '4',
-    id: 'XSD241004500004',
-    projectCode: '000011874',
-    factoryCode: '258881900004004',
-    productionLine: 'H3',
-    techVersion: 'V1.0',
-    snCode: 'S000012440119P302A01R652PA04',
-    code09: '099302A01R652A01J1124A01G4',
-    deliveryDate: '2025-8-28',
-    templateSnCode: '936ZA01R68',
-    circuitBoardCode: 'A004',
-    accessories: '2',
-    printStatus: 'completed',
-    printCount: 3,
-    createTime: '2024-12-26 10:15:45',
-    remark: 'C001'
-  },
-];
-
 export function PrintPage() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState<BarcodeRecord[]>(mockData);
+  const [dataSource, setDataSource] = useState<BarcodeRecord[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+  
+  // 使用ref来存储搜索参数，避免依赖问题
+  const searchParamsRef = useRef<Partial<BarcodeQueryParams>>({});
+
+  // 加载数据
+  const loadData = useCallback(async (page = 1, pageSize = 10, params: Partial<BarcodeQueryParams> = {}) => {
+    setLoading(true);
+    try {
+      const queryParams: Partial<BarcodeQueryParams> = {
+        page: page - 1,
+        size: pageSize,
+        offset: (page - 1) * pageSize,
+        ...params,
+      };
+
+      const response = await queryBarcodeRecords(queryParams);
+      
+      // 转换数据格式，添加key字段
+      const records = response.content.map((item, index) => ({
+        ...item,
+        key: item.id || `${index}`,
+      }));
+
+      setDataSource(records);
+      setPagination({
+        current: page,
+        pageSize: pageSize,
+        total: response.totalElements,
+      });
+    } catch (error) {
+      message.error('查询失败，请重试');
+      console.error('查询失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 初始化加载数据
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // 搜索处理
-  const handleSearch = useCallback(() => {
-    setLoading(true);
-    form.validateFields().then(values => {
-      console.log('搜索参数:', values);
-      // 这里应该调用API进行搜索
-      setTimeout(() => {
-        setLoading(false);
-        message.success('搜索完成');
-      }, 1000);
-    }).catch(() => {
-      setLoading(false);
-    });
-  }, [form]);
+  const handleSearch = useCallback(async () => {
+    try {
+      const values = await form.validateFields();
+      
+      // 处理日期范围
+      let deliveryDateStart: string | undefined;
+      let deliveryDateEnd: string | undefined;
+      
+      if (values.deliveryDateRange && Array.isArray(values.deliveryDateRange) && values.deliveryDateRange.length === 2) {
+        const [startDate, endDate] = values.deliveryDateRange as [Dayjs, Dayjs];
+        deliveryDateStart = startDate.format('YYYY-MM-DD');
+        deliveryDateEnd = endDate.format('YYYY-MM-DD');
+      }
+
+      const newSearchParams: Partial<BarcodeQueryParams> = {
+        projectCode: values.projectCode,
+        factoryCode: values.factoryCode,
+        productionLine: values.productionLine,
+        techVersion: values.techVersion,
+        snCode: values.snCode,
+        code09: values.code09,
+        deliveryDateStart,
+        deliveryDateEnd,
+        templateSnCode: values.templateSnCode,
+        circuitBoardCode: values.circuitBoardCode,
+        printStatus: values.printStatus,
+      };
+
+      searchParamsRef.current = newSearchParams;
+      setPagination(prev => ({ ...prev, current: 1 })); // 重置到第一页
+      await loadData(1, 10, newSearchParams);
+      message.success('查询完成');
+    } catch (error) {
+      console.error('搜索失败:', error);
+    }
+  }, [form, loadData]);
 
   // 重置搜索
   const handleReset = useCallback(() => {
     form.resetFields();
-    setDataSource(mockData);
-  }, [form]);
+    searchParamsRef.current = {};
+    loadData(); // 使用默认参数
+  }, [form, loadData]);
+
+  // 表格分页变化处理
+  const handleTableChange = useCallback((paginationConfig: { current?: number; pageSize?: number }) => {
+    const newCurrent = paginationConfig.current || 1;
+    const newPageSize = paginationConfig.pageSize || 10;
+    loadData(newCurrent, newPageSize, searchParamsRef.current);
+  }, [loadData]);
 
   // 批量打印标签
   const handleBatchPrint = useCallback(() => {
@@ -467,13 +451,18 @@ export function PrintPage() {
           loading={loading}
           scroll={{ x: 1400 }}
           pagination={{
-            total: dataSource.length,
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
               `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+            onChange: (page, pageSize) => {
+              handleTableChange({ current: page, pageSize });
+            },
           }}
+          onChange={handleTableChange}
         />
       </Card>
     </div>

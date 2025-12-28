@@ -43,12 +43,16 @@ function removePendingRequest(config: AxiosRequestConfig): void {
 /**
  * 显示错误消息
  */
-function showErrorMessage(message: string): void {
-  // 使用 console.error 替代 message.error，避免静态调用问题
-  console.error('API Error:', message);
+function showErrorMessage(errorMessage: string): void {
+  // 发送自定义事件来显示错误消息
+  window.dispatchEvent(new CustomEvent('showErrorMessage', {
+    detail: { message: errorMessage }
+  }));
+  
+  // 同时输出到控制台用于调试
+  console.error('API Error:', errorMessage);
   
   // 可以在这里添加其他错误处理逻辑，比如发送到错误监控服务
-  // 或者使用全局事件来通知UI显示错误
 }
 
 /**
@@ -136,38 +140,27 @@ instance.interceptors.response.use(
 );
 
 /**
- * 请求重试
+ * 发送请求（不重试）
  */
-async function requestWithRetry<T>(
-  config: AxiosRequestConfig,
-  retryCount: number = getConfig('request').retryCount
-): Promise<T> {
-  try {
-    const response = await instance.request<any, T>(config);
-    return response;
-  } catch (error) {
-    if (retryCount > 0 && !axios.isCancel(error)) {
-      await new Promise(resolve => setTimeout(resolve, getConfig('request').retryDelay));
-      return requestWithRetry<T>(config, retryCount - 1);
-    }
-    throw error;
-  }
+async function sendRequest<T>(config: AxiosRequestConfig): Promise<T> {
+  const response = await instance.request<any, T>(config);
+  return response;
 }
 
 export function get<T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
-  return requestWithRetry<T>({ method: 'GET', url, params, ...config });
+  return sendRequest<T>({ method: 'GET', url, params, ...config });
 }
 
 export function post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-  return requestWithRetry<T>({ method: 'POST', url, data, ...config });
+  return sendRequest<T>({ method: 'POST', url, data, ...config });
 }
 
 export function put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-  return requestWithRetry<T>({ method: 'PUT', url, data, ...config });
+  return sendRequest<T>({ method: 'PUT', url, data, ...config });
 }
 
 export function del<T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
-  return requestWithRetry<T>({ method: 'DELETE', url, params, ...config });
+  return sendRequest<T>({ method: 'DELETE', url, params, ...config });
 }
 
 export default instance;

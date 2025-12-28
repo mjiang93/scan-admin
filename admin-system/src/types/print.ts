@@ -3,6 +3,62 @@
  */
 
 /**
+ * 条码记录数据
+ */
+export interface BarcodeRecord {
+  key: string;
+  id: string;
+  projectCode: string;
+  factoryCode: string;
+  productionLine: string;
+  techVersion: string;
+  snCode: string;
+  code09: string;
+  deliveryDate: string;
+  templateSnCode: string;
+  circuitBoardCode: string;
+  accessories: string;
+  printStatus: 'pending' | 'printed' | 'completed';
+  printCount: number;
+  createTime: string;
+  remark?: string;
+}
+
+/**
+ * 查询参数
+ */
+export interface BarcodeQueryParams {
+  projectCode?: string;
+  factoryCode?: string;
+  productionLine?: string;
+  techVersion?: string;
+  snCode?: string;
+  code09?: string;
+  deliveryDateStart?: string;
+  deliveryDateEnd?: string;
+  templateSnCode?: string;
+  circuitBoardCode?: string;
+  printStatus?: 'pending' | 'printed' | 'completed';
+  page: number;
+  size: number;
+  offset: number;
+  traceId?: string;
+}
+
+/**
+ * 分页查询响应
+ */
+export interface BarcodePageResponse {
+  content: BarcodeRecord[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+/**
  * 打印模板类型
  */
 export enum PrintTemplateType {
@@ -140,8 +196,9 @@ export function validatePrintContent(
   const missingFields: string[] = [];
 
   for (const field of config.requiredFields) {
-    if (content[field] === undefined || content[field] === null || content[field] === '') {
-      missingFields.push(field);
+    const fieldValue = content[field as keyof PrintContentData];
+    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+      missingFields.push(field as string);
     }
   }
 

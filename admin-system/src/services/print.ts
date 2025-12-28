@@ -1,12 +1,15 @@
 /**
  * 打印服务
  */
+import { post } from '@/utils/request';
 import { setStorage, getStorage } from '@/utils/storage';
 import type {
   PrintConfig,
   PrintLog,
   PrintContentData,
   PrintTemplateType,
+  BarcodeQueryParams,
+  BarcodePageResponse,
 } from '@/types/print';
 import {
   validatePrintContent,
@@ -16,6 +19,35 @@ import {
 
 const PRINT_LOGS_KEY = 'print_logs';
 const MAX_LOGS = 100;
+
+/**
+ * 查询条码记录
+ */
+export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): Promise<BarcodePageResponse> {
+  const requestParams: BarcodeQueryParams = {
+    page: params.page || 0,
+    size: params.size || 10,
+    offset: params.offset || 0,
+    traceId: params.traceId || 'web-query',
+    ...params,
+  };
+
+  // 如果有日期范围，转换为ISO格式
+  if (params.deliveryDateStart) {
+    requestParams.deliveryDateStart = new Date(params.deliveryDateStart).toISOString();
+  }
+  if (params.deliveryDateEnd) {
+    requestParams.deliveryDateEnd = new Date(params.deliveryDateEnd).toISOString();
+  }
+
+  try {
+    const response = await post<BarcodePageResponse>('/pc/page', requestParams);
+    return response;
+  } catch (error) {
+    console.error('查询条码记录失败:', error);
+    throw error;
+  }
+}
 
 /**
  * 生成唯一ID

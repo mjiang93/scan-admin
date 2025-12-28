@@ -2,6 +2,7 @@
  * 应用入口
  * 集成路由、状态管理、全局Loading、错误边界
  */
+import { useEffect } from 'react';
 import { ConfigProvider, theme, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { AppRouter } from './router';
@@ -9,6 +10,31 @@ import { ErrorBoundary, GlobalLoading } from './components';
 import { useAppInit } from './hooks/useAppInit';
 import './assets/styles/reset.css';
 import './assets/styles/global.css';
+
+/**
+ * 全局消息监听器
+ * 监听来自工具函数的消息事件并显示通知
+ */
+function GlobalMessageListener() {
+  const { message } = AntdApp.useApp();
+
+  useEffect(() => {
+    const handleErrorMessage = (event: CustomEvent) => {
+      const { message: errorMessage } = event.detail;
+      message.error(errorMessage);
+    };
+
+    // 监听错误消息事件
+    window.addEventListener('showErrorMessage', handleErrorMessage as EventListener);
+
+    // 清理事件监听器
+    return () => {
+      window.removeEventListener('showErrorMessage', handleErrorMessage as EventListener);
+    };
+  }, [message]);
+
+  return null; // 这个组件不渲染任何内容
+}
 
 /**
  * Ant Design 主题配置
@@ -83,6 +109,8 @@ function AppContent() {
 
   return (
     <AntdApp>
+      {/* 全局消息监听器 */}
+      <GlobalMessageListener />
       {/* 全局 Loading */}
       <GlobalLoading tip="加载中..." />
       {/* 路由系统 */}

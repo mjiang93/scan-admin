@@ -1,22 +1,34 @@
 /**
  * 基础布局
  */
-import { Layout, Menu } from 'antd';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Layout, Menu, Button, Avatar, Dropdown, Space, Typography } from 'antd';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useAppStore } from '@/store';
+import { 
+  MenuFoldOutlined, 
+  MenuUnfoldOutlined,
+  PrinterOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined
+} from '@ant-design/icons';
+import { useAppStore, useUserStore } from '@/store';
 import { dynamicRoutes } from '@/router/routes';
 import { routesToMenus } from '@/router/utils';
+import { getCachedUserInfo } from '@/services/auth';
 import './index.css';
 
 const { Header, Sider, Content } = Layout;
+const { Text } = Typography;
 
 // 响应式断点
 const MOBILE_BREAKPOINT = 768;
 
 export default function BasicLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { collapsed, setCollapsed, toggleCollapsed } = useAppStore();
+  const userInfo = useUserStore((state) => state.userInfo) || getCachedUserInfo();
   const [isMobile, setIsMobile] = useState(false);
   
   const menus = routesToMenus(dynamicRoutes);
@@ -31,6 +43,46 @@ export default function BasicLayout() {
       label: child.label,
     })),
   }));
+  
+  // 用户下拉菜单
+  const userMenuItems = [
+    {
+      key: 'profile',
+      label: '个人信息',
+      icon: <UserOutlined />,
+    },
+    {
+      key: 'settings',
+      label: '系统设置',
+      icon: <SettingOutlined />,
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      label: '退出登录',
+      icon: <LogoutOutlined />,
+    },
+  ];
+
+  // 处理用户菜单点击
+  const handleUserMenuClick = ({ key }: { key: string }) => {
+    switch (key) {
+      case 'profile':
+        // 跳转到个人信息页面
+        break;
+      case 'settings':
+        // 跳转到系统设置页面
+        break;
+      case 'logout':
+        // 退出登录
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        navigate('/login');
+        break;
+    }
+  };
   
   // 响应式处理
   useEffect(() => {
@@ -67,21 +119,63 @@ export default function BasicLayout() {
         collapsedWidth={isMobile ? 0 : 80}
         trigger={null}
         className="layout-sider"
+        theme="dark"
       >
-        <div className="logo">{collapsed ? '系统' : '管理系统'}</div>
+        <div className="logo">
+          <PrinterOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          {!collapsed && <span className="logo-text">条码打印管理系统</span>}
+        </div>
         <Menu
           theme="dark"
           mode="inline"
+          selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />
       </Sider>
       <Layout className="layout-content">
-        <Header style={{ background: '#fff', padding: '0 16px' }} className="layout-header">
-          <h2>管理系统</h2>
+        <Header className="layout-header">
+          <div className="header-left">
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleCollapsed}
+              style={{
+                fontSize: '16px',
+                width: 64,
+                height: 64,
+              }}
+            />
+            <div className="header-title">
+              <Text strong style={{ fontSize: '18px', color: '#333' }}>
+                条码打印管理系统
+              </Text>
+            </div>
+          </div>
+          
+          <div className="header-right">
+            <Space size="middle">
+              <Text type="secondary">
+                欢迎，{userInfo?.userName || '用户'}
+              </Text>
+              <Dropdown
+                menu={{
+                  items: userMenuItems,
+                  onClick: handleUserMenuClick,
+                }}
+                placement="bottomRight"
+                arrow
+              >
+                <Avatar 
+                  style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
+                  icon={<UserOutlined />}
+                />
+              </Dropdown>
+            </Space>
+          </div>
         </Header>
-        <Content style={{ margin: '16px' }} className="layout-main">
-          <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
+        <Content className="layout-main">
+          <div className="content-wrapper">
             <Outlet />
           </div>
         </Content>

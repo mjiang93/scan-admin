@@ -8,17 +8,17 @@ export enum UserStatus {
 }
 
 export interface User {
-  id: string;
-  username: string;
-  nickname: string;
+  userId: string;
+  userName: string;
+  nickname?: string;
   avatar?: string;
   email?: string;
   phone?: string;
-  roleId: string;
-  roleName: string;
-  status: UserStatus;
-  createTime: string;
-  updateTime: string;
+  roleId?: string;
+  roleName?: string;
+  status?: UserStatus;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface Role {
@@ -48,12 +48,22 @@ export interface Permission {
 }
 
 export interface LoginParams {
-  username: string;
+  userId: string;
   password: string;
 }
 
-export interface LoginResult {
+// 根据实际API响应格式定义
+export interface LoginData {
+  status: number;
   token: string;
-  userInfo: User;
-  permissions: string[];
+  userId: string;
+  userName: string;
+}
+
+export interface LoginResult {
+  code: number;
+  data: LoginData;
+  errorMsg: string;
+  msg: string;
+  success: boolean;
 }

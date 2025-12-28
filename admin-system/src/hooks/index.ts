@@ -5,3 +5,4 @@
 export * from './useAuth';
 export * from './usePermission';
 export * from './useTable';
+export * from './useAppInit';

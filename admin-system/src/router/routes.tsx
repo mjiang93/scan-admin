@@ -6,6 +6,9 @@ import type { RouteConfig } from '@/types';
 
 // 懒加载页面组件
 const Login = lazy(() => import('@/pages/Login'));
+const LoginTest = lazy(() => import('@/pages/LoginTest'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const PrintPage = lazy(() => import('@/pages/Print'));
 const UserManage = lazy(() => import('@/pages/User'));
 const OrderManage = lazy(() => import('@/pages/Order'));
 const Exception403 = lazy(() => import('@/pages/Exception/403'));
@@ -22,6 +25,15 @@ export const staticRoutes: RouteConfig[] = [
     component: Login,
     meta: {
       title: '登录',
+      hideInMenu: true,
+    },
+  },
+  {
+    path: '/login-test',
+    name: 'LoginTest',
+    component: LoginTest,
+    meta: {
+      title: '登录测试',
       hideInMenu: true,
     },
   },
@@ -61,9 +73,18 @@ export const dynamicRoutes: RouteConfig[] = [
   {
     path: '/',
     name: 'Home',
-    redirect: '/user',
+    redirect: '/print',
     meta: {
       title: '首页',
+    },
+  },
+  {
+    path: '/print',
+    name: 'PrintPage',
+    component: PrintPage,
+    meta: {
+      title: '条码打印',
+      icon: 'PrinterOutlined',
     },
   },
   {
@@ -73,7 +94,16 @@ export const dynamicRoutes: RouteConfig[] = [
     meta: {
       title: '用户管理',
       icon: 'UserOutlined',
-      permission: 'user:view',
+    },
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: {
+      title: '仪表盘',
+      icon: 'DashboardOutlined',
+      hideInMenu: true, // 暂时隐藏仪表盘
     },
   },
   {
@@ -83,6 +113,7 @@ export const dynamicRoutes: RouteConfig[] = [
     meta: {
       title: '订单管理',
       icon: 'ShoppingOutlined',
+      hideInMenu: true, // 暂时隐藏订单管理
       permission: 'order:view',
     },
   },

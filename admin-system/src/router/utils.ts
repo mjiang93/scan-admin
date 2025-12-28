@@ -1,8 +1,24 @@
 /**
  * 路由工具函数
  */
+import React from 'react';
+import * as Icons from '@ant-design/icons';
 import type { RouteConfig, MenuConfig } from '@/types';
 import { hasPagePermission } from '@/utils/permission';
+
+/**
+ * 根据图标名称获取图标组件
+ */
+function getIcon(iconName?: string): React.ReactNode {
+  if (!iconName) return null;
+  
+  const IconComponent = (Icons as any)[iconName];
+  if (IconComponent) {
+    return React.createElement(IconComponent);
+  }
+  
+  return null;
+}
 
 /**
  * 根据权限生成动态路由
@@ -47,6 +63,7 @@ export function routesToMenus(routes: RouteConfig[]): MenuConfig[] {
       key: route.path,
       label: route.meta?.title || route.name,
       path: route.path,
+      icon: getIcon(route.meta?.icon),
     };
     
     // 处理子菜单

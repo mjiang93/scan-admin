@@ -29,12 +29,28 @@ export function RouteGuard({
 }: RouteGuardProps) {
   const location = useLocation();
   const token = useUserStore((state) => state.token);
+  const userInfo = useUserStore((state) => state.userInfo);
   
   // 检查登录状态
   if (requireAuth) {
-    const isLoggedIn = checkLoginStatus() || !!token;
+    // 检查 token 和用户信息
+    const hasToken = !!token;
+    const hasUserInfo = !!userInfo;
+    const loginStatusCheck = checkLoginStatus();
+    
+    const isLoggedIn = hasToken && hasUserInfo && loginStatusCheck;
+    
+    console.log('RouteGuard 检查:', {
+      path: location.pathname,
+      hasToken,
+      hasUserInfo,
+      loginStatusCheck,
+      isLoggedIn,
+      token: token ? token.substring(0, 20) + '...' : null
+    });
     
     if (!isLoggedIn) {
+      console.log('未登录，重定向到登录页面');
       // 未登录，跳转到登录页面，并记录来源页面
       return (
         <Navigate 
@@ -58,6 +74,7 @@ export function RouteGuard({
     }
   }
   
+  console.log('RouteGuard 通过，渲染子组件');
   return <>{children}</>;
 }
 

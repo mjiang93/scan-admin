@@ -2,7 +2,7 @@
  * 登录页面
  */
 import { useState } from 'react';
-import { Form, Input, Button, Card, message } from 'antd';
+import { Form, Input, Button, Card, App } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { login } from '@/services/auth';
@@ -13,20 +13,25 @@ export default function Login() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { message } = App.useApp();
   
   const handleSubmit = async (values: LoginParams) => {
     setLoading(true);
     try {
-      await login(values);
-      message.success('登录成功');
-      navigate('/');
+      const result = await login(values);
+      
+      // 只有 code === 0 时才算成功
+      if (result.code === 0) {
+        message.success('登录成功');
+        
+        // 登录成功后使用 replace 方式跳转到打印页面
+        setTimeout(() => {
+          window.location.replace('#/print');
+        }, 500);
+      }
     } catch (error) {
-      // 显示具体的错误信息
-      const errorMessage = 
-        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || 
-        (error as { message?: string })?.message || 
-        '登录失败，请检查用户名和密码';
-      message.error(errorMessage);
+      // 错误已经由统一的接口封装处理，这里不需要额外处理
+      console.error('登录错误:', error);
     } finally {
       setLoading(false);
     }
@@ -35,12 +40,16 @@ export default function Login() {
   return (
     <div className="login-container">
       <Card title="用户登录" style={{ width: 400 }}>
-        <Form form={form} onFinish={handleSubmit}>
+        <Form 
+          form={form} 
+          onFinish={handleSubmit}
+          initialValues={{ userId: 'capo001', password: '123456' }}
+        >
           <Form.Item
-            name="username"
-            rules={[{ required: true, message: '请输入用户名' }]}
+            name="userId"
+            rules={[{ required: true, message: '请输入用户ID' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="用户名" />
+            <Input prefix={<UserOutlined />} placeholder="用户ID" />
           </Form.Item>
           <Form.Item
             name="password"

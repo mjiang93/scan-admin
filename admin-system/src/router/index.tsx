@@ -2,25 +2,22 @@
  * 路由入口
  * 集成动态路由、路由守卫、懒加载
  */
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { Suspense } from 'react';
 import { staticRoutes, dynamicRoutes } from './routes';
-import { generateRoutes } from './utils';
 import { RouteGuard } from './guard';
-import { usePermissionStore } from '@/store';
 import BasicLayout from '@/layouts/BasicLayout';
 import BlankLayout from '@/layouts/BlankLayout';
 import { PageLoading } from '@/components';
 
 /**
  * 创建路由配置
- * 根据用户权限动态生成可访问的路由
  */
-export function createRoutes() {
-  const permissions = usePermissionStore.getState().permissions;
-  const authorizedRoutes = generateRoutes(dynamicRoutes, permissions);
+function createRoutes() {
+  // 不依赖权限状态，直接使用所有动态路由
+  const authorizedRoutes = dynamicRoutes;
   
-  const router = createBrowserRouter([
+  const router = createHashRouter([
     // 需要认证的路由（使用 BasicLayout）
     {
       path: '/',
@@ -30,10 +27,10 @@ export function createRoutes() {
         </RouteGuard>
       ),
       children: [
-        // 默认重定向到用户管理页面
+        // 默认重定向到条码打印页面
         {
           index: true,
-          element: <Navigate to="/user" replace />,
+          element: <Navigate to="/print" replace />,
         },
         // 动态生成的授权路由
         ...authorizedRoutes.map(route => ({
@@ -79,7 +76,3 @@ export function AppRouter() {
   const router = createRoutes();
   return <RouterProvider router={router} />;
 }
-
-export * from './routes';
-export * from './utils';
-export * from './guard';

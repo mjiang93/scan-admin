@@ -3,7 +3,6 @@
  */
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { message } from 'antd';
 import { getApiBaseUrl, getConfig } from '@/config';
 
 // 请求队列，用于取消重复请求
@@ -42,6 +41,17 @@ function removePendingRequest(config: AxiosRequestConfig): void {
 }
 
 /**
+ * 显示错误消息
+ */
+function showErrorMessage(message: string): void {
+  // 使用 console.error 替代 message.error，避免静态调用问题
+  console.error('API Error:', message);
+  
+  // 可以在这里添加其他错误处理逻辑，比如发送到错误监控服务
+  // 或者使用全局事件来通知UI显示错误
+}
+
+/**
  * 创建axios实例
  */
 const instance: AxiosInstance = axios.create({
@@ -59,7 +69,8 @@ instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(getConfig('token').key);
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // 使用auth字段而不是Authorization
+      config.headers.auth = token;
     }
     addPendingRequest(config);
     return config;
@@ -76,11 +87,16 @@ instance.interceptors.response.use(
   (response: AxiosResponse) => {
     removePendingRequest(response.config);
     const { data } = response;
-    if (data.code === 200 || data.success) {
+    
+    // 只有当 code === 0 时才算成功
+    if (data.code === 0) {
       return data;
     }
-    message.error(data.message || '请求失败');
-    return Promise.reject(new Error(data.message || '请求失败'));
+    
+    // 其他情况都算失败，统一处理错误信息
+    const errorMessage = data.errorMsg || data.msg || data.message || '请求失败';
+    showErrorMessage(errorMessage);
+    return Promise.reject(new Error(errorMessage));
   },
   async (error: AxiosError) => {
     if (error.config) {
@@ -90,7 +106,7 @@ instance.interceptors.response.use(
       return Promise.reject(error);
     }
     if (!error.response) {
-      message.error('网络连接失败，请检查网络');
+      showErrorMessage('网络连接失败，请检查网络');
       return Promise.reject(error);
     }
     const { status } = error.response;
@@ -98,21 +114,22 @@ instance.interceptors.response.use(
       case 401:
         localStorage.removeItem(getConfig('token').key);
         localStorage.removeItem(getConfig('token').expiresKey);
-        message.error('登录已过期，请重新登录');
+        localStorage.removeItem('loginData');
+        showErrorMessage('登录已过期，请重新登录');
         window.location.href = '/login';
         break;
       case 403:
-        message.error('您没有权限执行此操作');
+        showErrorMessage('您没有权限执行此操作');
         break;
       case 404:
-        message.error('请求的资源不存在');
+        showErrorMessage('请求的资源不存在');
         break;
       case 500:
-        message.error('服务器错误，请稍后重试');
+        showErrorMessage('服务器错误，请稍后重试');
         break;
       default:
         { const errorData = error.response.data as any;
-        message.error(errorData?.message || '请求失败'); }
+        showErrorMessage(errorData?.errorMsg || errorData?.msg || errorData?.message || '请求失败'); }
     }
     return Promise.reject(error);
   }

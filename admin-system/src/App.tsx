@@ -2,10 +2,11 @@
  * 应用入口
  * 集成路由、状态管理、全局Loading、错误边界
  */
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { AppRouter } from './router';
 import { ErrorBoundary, GlobalLoading } from './components';
+import { useAppInit } from './hooks/useAppInit';
 import './assets/styles/reset.css';
 import './assets/styles/global.css';
 
@@ -74,21 +75,36 @@ const handleGlobalError = (error: Error, errorInfo: React.ErrorInfo) => {
 };
 
 /**
+ * 应用内容组件
+ */
+function AppContent() {
+  // 初始化应用状态
+  useAppInit();
+
+  return (
+    <AntdApp>
+      {/* 全局 Loading */}
+      <GlobalLoading tip="加载中..." />
+      {/* 路由系统 */}
+      <AppRouter />
+    </AntdApp>
+  );
+}
+
+/**
  * 应用根组件
  * 集成以下功能：
  * 1. 全局错误边界 - 捕获并处理 React 组件错误
  * 2. Ant Design 配置 - 主题、国际化
  * 3. 全局 Loading - 显示全局加载状态
  * 4. 路由系统 - 动态路由和路由守卫
+ * 5. 应用初始化 - 恢复用户状态
  */
 function App() {
   return (
     <ErrorBoundary onError={handleGlobalError}>
       <ConfigProvider locale={zhCN} theme={themeConfig}>
-        {/* 全局 Loading */}
-        <GlobalLoading tip="加载中..." />
-        {/* 路由系统 */}
-        <AppRouter />
+        <AppContent />
       </ConfigProvider>
     </ErrorBoundary>
   );

@@ -4,7 +4,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@/types';
-import { setToken, removeToken, setUserInfo, removeUserInfo } from '@/utils/storage';
+import { 
+  setToken as saveToken, 
+  removeToken, 
+  setUserInfo as saveUserInfo, 
+  removeUserInfo 
+} from '@/utils/storage';
 
 interface UserState {
   token: string | null;
@@ -21,12 +26,12 @@ export const useUserStore = create<UserState>()(
       userInfo: null,
       
       setToken: (token: string) => {
-        setToken(token);
+        saveToken(token);
         set({ token });
       },
       
       setUserInfo: (userInfo: User) => {
-        setUserInfo(userInfo);
+        saveUserInfo(userInfo);
         set({ userInfo });
       },
       

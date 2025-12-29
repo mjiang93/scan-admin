@@ -27,6 +27,7 @@ import InnerPackagingModal from '@/components/InnerPackagingModal';
 import OuterPackagingModal from '@/components/OuterPackagingModal';
 import EditRecordModal from '@/components/EditRecordModal';
 import BatchAccessoryModal from '@/components/BatchAccessoryModal';
+import BatchDeliveryModal from '@/components/BatchDeliveryModal';
 import './index.css';
 
 const { RangePicker } = DatePicker;
@@ -49,6 +50,7 @@ export function PrintPage() {
   const [outerPackagingModalVisible, setOuterPackagingModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [batchAccessoryModalVisible, setBatchAccessoryModalVisible] = useState(false);
+  const [batchDeliveryModalVisible, setBatchDeliveryModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<BarcodeRecord | null>(null);
   
   // 使用ref来存储搜索参数，避免依赖问题
@@ -175,11 +177,11 @@ export function PrintPage() {
   // 批量导出标签
   const handleBatchExport = useCallback(() => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请选择要导出的记录');
+      message.warning('请选择要修改送货时间的记录');
       return;
     }
     
-    message.success(`已导出 ${selectedRowKeys.length} 条记录`);
+    setBatchDeliveryModalVisible(true);
   }, [selectedRowKeys]);
 
   // 本体操作
@@ -504,6 +506,18 @@ export function PrintPage() {
         onClose={() => setBatchAccessoryModalVisible(false)}
         onSuccess={() => {
           // 添加附件成功后重新加载数据并清空选择
+          loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
+          setSelectedRowKeys([]);
+        }}
+      />
+
+      {/* 批量修改送货时间弹窗 */}
+      <BatchDeliveryModal
+        visible={batchDeliveryModalVisible}
+        selectedIds={selectedRowKeys}
+        onClose={() => setBatchDeliveryModalVisible(false)}
+        onSuccess={() => {
+          // 修改送货时间成功后重新加载数据并清空选择
           loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
           setSelectedRowKeys([]);
         }}

@@ -2,7 +2,7 @@
  * 批量添加附件弹窗
  */
 import { useState } from 'react';
-import { Modal, Form, InputNumber, message } from 'antd';
+import { Modal, Form, InputNumber, Button, message } from 'antd';
 import { batchEditAccessory } from '@/services/print';
 import './index.css';
 
@@ -70,18 +70,23 @@ export default function BatchAccessoryModal({
     <Modal
       title="批量分配附件"
       open={visible}
-      onOk={handleSubmit}
       onCancel={handleCancel}
-      confirmLoading={loading}
-      okText="确定"
-      cancelText="取消"
+      footer={[
+        <Button key="cancel" onClick={handleCancel}>
+          取消
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          loading={loading}
+          onClick={handleSubmit}
+        >
+          确定
+        </Button>,
+      ]}
       width={400}
       className="batch-accessory-modal"
     >
-      <div className="selected-info">
-        <p>已选择 {selectedIds.length} 条记录</p>
-      </div>
-      
       <Form
         form={form}
         layout="vertical"
@@ -103,6 +108,10 @@ export default function BatchAccessoryModal({
             precision={0}
           />
         </Form.Item>
+        
+        <div style={{ color: '#666', fontSize: '14px', marginTop: '16px' }}>
+          将为选中的 {selectedIds.length} 条记录分配附件
+        </div>
       </Form>
     </Modal>
   );

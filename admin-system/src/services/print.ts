@@ -81,6 +81,23 @@ export async function batchEditAccessory(params: {
 }
 
 /**
+ * 批量修改送货时间
+ */
+export async function batchEditDeliveryDate(params: {
+  ids: number[];
+  deliveryDate: string;
+  operator: string;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/editdelivery', params);
+    return response;
+  } catch (error) {
+    console.error('批量修改送货时间失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 生成唯一ID
  */
 function generateId(): string {

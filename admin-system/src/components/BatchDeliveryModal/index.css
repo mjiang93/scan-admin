@@ -1,0 +1,12 @@
+/* 批量修改送货时间弹窗样式 */
+.batch-delivery-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.batch-delivery-modal .ant-form-item-label {
+  font-weight: 500;
+}
+
+.batch-delivery-modal .ant-picker {
+  height: 40px;
+}

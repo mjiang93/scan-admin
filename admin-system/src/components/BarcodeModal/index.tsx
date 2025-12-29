@@ -2,7 +2,8 @@
  * 条码二维码弹窗组件
  */
 import React, { useEffect, useRef } from 'react';
-import { Modal, Button, message } from 'antd';
+import { Modal, Button, message, Space } from 'antd';
+import { PrinterOutlined } from '@ant-design/icons';
 import JsBarcode from 'jsbarcode';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord } from '@/types/print';
@@ -209,9 +210,22 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       width={800}
       footer={
         <div className="modal-footer">
-          <Button type="primary" className="print-button" onClick={handlePrint}>
-            打印
-          </Button>
+          
+          <Space>
+            <Button 
+              type="primary" 
+              icon={<PrinterOutlined />}
+              onClick={handlePrint}
+            >
+              打印
+            </Button>
+            {/* <Button type="primary" className="print-button" onClick={handlePrint}>
+              打印
+            </Button> */}
+            <Button onClick={onClose}>
+              取消
+            </Button>
+          </Space>
         </div>
       }
       className="barcode-modal"

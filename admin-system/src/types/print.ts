@@ -63,7 +63,7 @@ export interface BarcodePageResponse {
 /**
  * 实际API响应结构
  */
-export interface ApiResponse<T = unknown> {
+export interface PrintApiResponse<T = unknown> {
   code: number;
   data: {
     empty: boolean;

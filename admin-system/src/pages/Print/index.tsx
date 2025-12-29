@@ -12,14 +12,11 @@ import {
   Table, 
   Space, 
   message, 
-  Tag,
-  Modal
+  Tag
 } from 'antd';
 import { 
   SearchOutlined, 
-  PrinterOutlined, 
-  ReloadOutlined,
-  DownloadOutlined
+  ReloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { Dayjs } from 'dayjs';
@@ -28,6 +25,8 @@ import type { BarcodeRecord, BarcodeQueryParams, ApiBarcodeRecord } from '@/type
 import BarcodeModal from '@/components/BarcodeModal';
 import InnerPackagingModal from '@/components/InnerPackagingModal';
 import OuterPackagingModal from '@/components/OuterPackagingModal';
+import EditRecordModal from '@/components/EditRecordModal';
+import BatchAccessoryModal from '@/components/BatchAccessoryModal';
 import './index.css';
 
 const { RangePicker } = DatePicker;
@@ -48,6 +47,8 @@ export function PrintPage() {
   const [barcodeModalVisible, setBarcodeModalVisible] = useState(false);
   const [innerPackagingModalVisible, setInnerPackagingModalVisible] = useState(false);
   const [outerPackagingModalVisible, setOuterPackagingModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [batchAccessoryModalVisible, setBatchAccessoryModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<BarcodeRecord | null>(null);
   
   // 使用ref来存储搜索参数，避免依赖问题
@@ -164,18 +165,11 @@ export function PrintPage() {
   // 批量打印标签
   const handleBatchPrint = useCallback(() => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请选择要打印的记录');
+      message.warning('请选择要添加附件的记录');
       return;
     }
     
-    Modal.confirm({
-      title: '确认打印',
-      content: `确定要打印选中的 ${selectedRowKeys.length} 条记录吗？`,
-      onOk: () => {
-        message.success(`已发送 ${selectedRowKeys.length} 条记录到打印队列`);
-        setSelectedRowKeys([]);
-      }
-    });
+    setBatchAccessoryModalVisible(true);
   }, [selectedRowKeys]);
 
   // 批量导出标签
@@ -208,17 +202,8 @@ export function PrintPage() {
 
   // 编辑操作
   const handleEdit = useCallback((record: BarcodeRecord) => {
-    Modal.info({
-      title: '编辑记录',
-      content: (
-        <div>
-          <p><strong>项目编码：</strong>{record.projectCode}</p>
-          <p><strong>出厂码：</strong>{record.factoryCode}</p>
-          <p><strong>SN码：</strong>{record.snCode}</p>
-          <p>编辑功能开发中...</p>
-        </div>
-      ),
-    });
+    setCurrentRecord(record);
+    setEditModalVisible(true);
   }, []);
 
   // 表格列配置
@@ -437,18 +422,16 @@ export function PrintPage() {
         <Space>
           <Button 
             type="primary" 
-            icon={<PrinterOutlined />}
             onClick={handleBatchPrint}
             disabled={selectedRowKeys.length === 0}
           >
-            批量条码标签打印
+            批量添加附件
           </Button>
           <Button 
-            icon={<DownloadOutlined />}
             onClick={handleBatchExport}
             disabled={selectedRowKeys.length === 0}
           >
-            批量导出条码标签
+            批量修改送货时间
           </Button>
         </Space>
         {selectedRowKeys.length > 0 && (
@@ -501,6 +484,29 @@ export function PrintPage() {
         visible={outerPackagingModalVisible}
         onClose={() => setOuterPackagingModalVisible(false)}
         record={currentRecord}
+      />
+
+      {/* 编辑记录弹窗 */}
+      <EditRecordModal
+        visible={editModalVisible}
+        record={currentRecord}
+        onClose={() => setEditModalVisible(false)}
+        onSuccess={() => {
+          // 编辑成功后重新加载数据
+          loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
+        }}
+      />
+
+      {/* 批量添加附件弹窗 */}
+      <BatchAccessoryModal
+        visible={batchAccessoryModalVisible}
+        selectedIds={selectedRowKeys}
+        onClose={() => setBatchAccessoryModalVisible(false)}
+        onSuccess={() => {
+          // 添加附件成功后重新加载数据并清空选择
+          loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
+          setSelectedRowKeys([]);
+        }}
       />
     </div>
   );

@@ -9,7 +9,7 @@ import type {
   PrintContentData,
   PrintTemplateType,
   BarcodeQueryParams,
-  ApiResponse,
+  PrintApiResponse,
   ApiBarcodeRecord,
 } from '@/types/print';
 import {
@@ -24,7 +24,7 @@ const MAX_LOGS = 100;
 /**
  * 查询条码记录
  */
-export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): Promise<ApiResponse<ApiBarcodeRecord>> {
+export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): Promise<PrintApiResponse<ApiBarcodeRecord>> {
   const requestParams: BarcodeQueryParams = {
     page: params.page || 1,
     size: params.size || 10,
@@ -42,10 +42,40 @@ export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): 
   }
 
   try {
-    const response = await post<ApiResponse<ApiBarcodeRecord>>('/pc/page', requestParams);
+    const response = await post<PrintApiResponse<ApiBarcodeRecord>>('/pc/page', requestParams);
     return response;
   } catch (error) {
     console.error('查询条码记录失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新条码记录
+ */
+export async function updateBarcodeRecord(data: ApiBarcodeRecord): Promise<PrintApiResponse<ApiBarcodeRecord>> {
+  try {
+    const response = await post<PrintApiResponse<ApiBarcodeRecord>>('/pc/edit', data);
+    return response;
+  } catch (error) {
+    console.error('更新条码记录失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 批量添加附件
+ */
+export async function batchEditAccessory(params: {
+  ids: number[];
+  operator: string;
+  accessoryCnt: number;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/editaccessory', params);
+    return response;
+  } catch (error) {
+    console.error('批量添加附件失败:', error);
     throw error;
   }
 }

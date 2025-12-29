@@ -59,7 +59,6 @@
   align-items: center;
   background: white;
   padding: 8px;
-  border: 1px solid #f0f0f0;
 }
 
 .product-info {
@@ -79,11 +78,13 @@
   font-weight: 500;
   color: #666;
   min-width: 50px;
+  text-align: left;
 }
 
 .info-value {
   color: #333;
   font-weight: 400;
+  margin-right: 12px;
 }
 
 /* 条形码区域 */

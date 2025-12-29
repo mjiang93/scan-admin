@@ -67,12 +67,10 @@
 
 .info-label {
   flex-shrink: 0;
-  width: 80px;
   color: #666;
 }
 
 .info-value {
-  flex: 1;
   color: #333;
   word-break: break-all;
 }

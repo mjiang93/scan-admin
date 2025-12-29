@@ -24,6 +24,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
 }) => {
   const barcodeRef1 = useRef<SVGSVGElement>(null);
   const barcodeRef2 = useRef<SVGSVGElement>(null);
+  const printAreaRef = useRef<HTMLDivElement>(null);
 
   // 生成条形码
   useEffect(() => {
@@ -59,77 +60,125 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
 
   // 打印功能
   const handlePrint = () => {
+    if (!printAreaRef.current || !record) return;
+    
     const printWindow = window.open('', '_blank');
-    if (printWindow && record) {
+    if (printWindow) {
       const printContent = `
         <!DOCTYPE html>
         <html>
         <head>
           <title>本体条码</title>
           <style>
+            @page {
+              margin: 0;
+              size: A4;
+            }
             body { 
               font-family: Arial, sans-serif; 
-              margin: 20px; 
+              margin: 0; 
+              padding: 20px;
               background: white;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .print-container { 
               max-width: 800px; 
-              margin: 0 auto; 
+              margin: 0 auto;
+              border-radius: 4px;
+              padding: 20px;
+              background: white;
             }
-            .header { 
-              text-align: left; 
-              margin-bottom: 20px; 
-              font-size: 18px;
-              font-weight: bold;
+            .qr-section {
+              background: white;
+              border: 1px solid #e8e8e8;
+              border-radius: 4px;
+              padding: 20px;
+              margin-bottom: 16px;
             }
-            .info-section { 
-              margin-bottom: 20px; 
-              padding: 10px;
-              border: 1px solid #ddd;
+            .qr-content {
+              display: flex;
+              align-items: center;
+              gap: 40px;
             }
-            .info-row { 
-              margin: 5px 0; 
+            .qr-code-container {
+              flex-shrink: 0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              background: white;
+              padding: 8px;
+            }
+            .product-info {
+              flex: 1;
+            }
+            .info-line {
+              margin: 12px 0;
               font-size: 14px;
+              line-height: 1.6;
+              display: flex;
+              align-items: center;
+              gap: 8px;
             }
-            .code-section { 
-              margin: 20px 0; 
-              padding: 15px;
-              border: 1px solid #ddd;
-              text-align: center;
+            .info-label {
+              font-weight: 500;
+              color: #666;
+              min-width: 50px;
+              text-align: left;
             }
-            .qr-code { 
-              margin: 10px 0; 
+            .info-value {
+              color: #333;
+              font-weight: 400;
+              margin-right: 12px;
             }
-            .barcode { 
-              margin: 15px 0; 
+            .barcode-section {
+              background: transparent;
+              border: none;
+              padding: 0;
+            }
+            .barcode-item {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin: 16px 0;
+              padding: 16px;
+              background: white;
+              border: 1px solid #e8e8e8;
+              border-radius: 4px;
+            }
+            .barcode-item svg {
+              max-width: 100%;
+              height: auto;
             }
             @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
+              body { 
+                margin: 0; 
+                padding: 10px; 
+              }
+              .print-container {
+                background: white !important;
+                box-shadow: none !important;
+              }
+              .qr-section {
+                border: 1px solid #333 !important;
+                background: white !important;
+                box-shadow: none !important;
+              }
+              .barcode-item {
+                border: 1px solid #333 !important;
+                background: white !important;
+                margin: 10px 0 !important;
+              }
+              .info-label,
+              .info-value {
+                color: #000 !important;
+              }
             }
           </style>
         </head>
         <body>
           <div class="print-container">
-            <div class="header">本体条码</div>
-            <div class="info-section">
-              <div class="info-row">本体条码</div>
-              <div class="info-row">尺寸：42mm*10mm</div>
-            </div>
-            <div class="code-section">
-              <div class="qr-code">
-                ${document.querySelector('.qr-code-container')?.innerHTML || ''}
-              </div>
-              <div class="info-row">PN: ${record.projectCode} &nbsp;&nbsp; Rev: ${record.techVersion}</div>
-              <div class="info-row">Model: ${record.factoryCode}</div>
-              <div class="info-row">SN: ${record.snCode}</div>
-            </div>
-            <div class="barcode">
-              ${barcodeRef1.current?.outerHTML || ''}
-            </div>
-            <div class="barcode">
-              ${barcodeRef2.current?.outerHTML || ''}
-            </div>
+            ${printAreaRef.current.innerHTML}
           </div>
         </body>
         </html>
@@ -137,9 +186,13 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       
       printWindow.document.write(printContent);
       printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+      
+      // 等待内容加载完成后再打印
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 500);
     }
   };
 
@@ -172,44 +225,47 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
         </div>
 
         {/* 二维码和产品信息区域 */}
-        <div className="qr-section">
-          <div className="qr-content">
-            <div className="qr-code-container">
-              <QRCodeSVG
-                value={qrCodeContent}
-                size={100}
-                level="M"
-                includeMargin={false}
-              />
+        <div ref={printAreaRef}>
+          <div className="qr-section">
+            <div className="qr-content">
+              <div className="qr-code-container">
+                <QRCodeSVG
+                  value={qrCodeContent}
+                  size={100}
+                  level="M"
+                />
+              </div>
+              <div className="product-info">
+                <div className="info-line">
+                  <span className="info-label">PN:</span>
+                  <span className="info-value">{record.projectCode}</span>
+                  <span className="info-label">Rev:</span>
+                  <span className="info-value">{record.techVersion}</span>
+                </div>
+                <div className="info-line">
+                  <span className="info-label">Model:</span>
+                  <span className="info-value">{record.factoryCode}</span>
+                </div>
+                <div className="info-line">
+                  <span className="info-label">SN:</span>
+                  <span className="info-value">{record.snCode}</span>
+                </div>
+              </div>
             </div>
-            <div className="product-info">
-              <div className="info-line">
-                <span className="info-label">PN:</span>
-                <span className="info-value">{record.projectCode}</span>
-                <span className="info-label">Rev:</span>
-                <span className="info-value">{record.techVersion}</span>
-              </div>
-              <div className="info-line">
-                <span className="info-label">Model:</span>
-                <span className="info-value">{record.factoryCode}</span>
-              </div>
-              <div className="info-line">
-                <span className="info-label">SN:</span>
-                <span className="info-value">{record.snCode}</span>
-              </div>
+          </div>
+
+          {/* 条形码区域 */}
+          <div className="barcode-section">
+            <div className="barcode-item">
+              <svg ref={barcodeRef1}></svg>
+            </div>
+            <div className="barcode-item">
+              <svg ref={barcodeRef2}></svg>
             </div>
           </div>
         </div>
 
-        {/* 条形码区域 */}
-        <div className="barcode-section">
-          <div className="barcode-item">
-            <svg ref={barcodeRef1}></svg>
-          </div>
-          <div className="barcode-item">
-            <svg ref={barcodeRef2}></svg>
-          </div>
-        </div>
+        
       </div>
     </Modal>
   );

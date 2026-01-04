@@ -1,0 +1,33 @@
+server {
+    listen 80;
+    server_name 47.110.53.133;  # 或者你的域名
+
+    # 前端静态文件目录
+    root /var/www/admin-system/dist;  # 修改为你的实际路径
+    index index.html;
+
+    # 前端路由处理（SPA 应用）
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API 反向代理到后端
+    location /api/ {
+        proxy_pass http://localhost:7077/;  # 注意末尾的 /
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}

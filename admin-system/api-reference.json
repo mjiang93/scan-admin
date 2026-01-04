@@ -1,0 +1,380 @@
+{
+  "apiInfo": {
+    "title": "条码管理系统",
+    "version": "1.0.0-SNAPSHOT",
+    "baseURL": "http://47.110.53.133:7077",
+    "description": "条码管理系统后端API接口文档"
+  },
+  "commonHeaders": {
+    "auth": {
+      "type": "string",
+      "required": false,
+      "description": "认证令牌"
+    },
+    "sign": {
+      "type": "string",
+      "required": false,
+      "description": "签名"
+    }
+  },
+  "apis": {
+    "barcode": {
+      "name": "PC条码管理相关接口",
+      "endpoints": {
+        "list": {
+          "path": "/pc/page",
+          "method": "POST",
+          "summary": "查询用户列表",
+          "requestBody": {
+            "page": "起始页",
+            "size": "分页大小",
+            "deliveryDateStart": "送货日期开始",
+            "deliveryDateEnd": "送货日期结束",
+            "offset": "偏移量",
+            "traceId": "事件号"
+          },
+          "response": "返回结果«分页对象«条码信息»»"
+        },
+        "detail": {
+          "path": "/pc/detail",
+          "method": "GET",
+          "summary": "根据ID查询条码详情",
+          "params": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "主键id"
+            }
+          },
+          "response": "返回结果«条码信息»"
+        },
+        "edit": {
+          "path": "/pc/edit",
+          "method": "POST",
+          "summary": "修改条码信息",
+          "requestBody": "条码信息对象",
+          "response": "返回结果«object»"
+        },
+        "btprint": {
+          "path": "/pc/btprint",
+          "method": "POST",
+          "summary": "本体码打印预览-生成条码-更新图纸版本后才能打印",
+          "params": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "主键"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
+          },
+          "response": "返回结果«object»"
+        },
+        "editprint": {
+          "path": "/pc/editprint",
+          "method": "POST",
+          "summary": "打印更新打印状态-点打印按扭时调用",
+          "requestBody": {
+            "id": "主键",
+            "operator": "操作人",
+            "btPrintCnt": "本体码打印状态 1-打印",
+            "nbzPrintCnt": "内包装码打印状态 1-打印",
+            "wbzPrintCnt": "送货外包装码打印 1-打印"
+          },
+          "response": "返回结果«object»"
+        },
+        "editdelivery": {
+          "path": "/pc/editdelivery",
+          "method": "POST",
+          "summary": "批量更新送货日期",
+          "requestBody": {
+            "ids": "主键集合",
+            "deliveryDate": "送货日期",
+            "operator": "操作人"
+          },
+          "response": "返回结果«object»"
+        },
+        "editaccessory": {
+          "path": "/pc/editaccessory",
+          "method": "POST",
+          "summary": "批量更新附件",
+          "requestBody": {
+            "ids": "主键集合",
+            "accessoryCnt": "附件数量",
+            "operator": "操作人"
+          },
+          "response": "返回结果«object»"
+        }
+      }
+    },
+    "pda": {
+      "name": "PDA端-条码相关接口",
+      "endpoints": {
+        "scanpcode": {
+          "path": "/pda/scanpcode",
+          "method": "GET",
+          "summary": "扫描项目编码，生成条码信息",
+          "requestBody": {
+            "projectCode": "项目编码",
+            "operator": "操作人"
+          },
+          "response": "返回结果«条码信息»"
+        },
+        "scanfcode": {
+          "path": "/pda/scanfcode",
+          "method": "GET",
+          "summary": "扫描MOM系统出厂编码，绑定生成的条码信息",
+          "requestBody": {
+            "id": "条码信息主键ID",
+            "factoryCode": "出厂码",
+            "operator": "操作人"
+          },
+          "response": "返回结果«条码信息»"
+        },
+        "editdv": {
+          "path": "/pda/editdv",
+          "method": "GET",
+          "summary": "修改图纸版本",
+          "params": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "主键"
+            },
+            "drawingVersion": {
+              "type": "string",
+              "required": true,
+              "description": "图纸版本"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
+          },
+          "response": "返回结果«条码信息»"
+        },
+        "scanbtcode": {
+          "path": "/pda/scanbtcode",
+          "method": "GET",
+          "summary": "扫本体码得到内包装码打印信息",
+          "params": {
+            "btcode": {
+              "type": "string",
+              "required": true,
+              "description": "本体码"
+            }
+          },
+          "response": "返回结果«内包装码打印信息»"
+        },
+        "scannbzcode": {
+          "path": "/pda/scannbzcode",
+          "method": "GET",
+          "summary": "扫内包装码得到外包装码打印信息",
+          "params": {
+            "nbzcode": {
+              "type": "string",
+              "required": true,
+              "description": "内包装码"
+            }
+          },
+          "response": "返回结果«外包装码打印信息»"
+        }
+      }
+    },
+    "user": {
+      "name": "用户相关接口",
+      "endpoints": {
+        "login": {
+          "path": "/user/login",
+          "method": "POST",
+          "summary": "用户登陆",
+          "requestBody": {
+            "userId": "用户ID",
+            "password": "密码"
+          },
+          "response": "返回结果«用户登录返回响应»"
+        },
+        "register": {
+          "path": "/user/register",
+          "method": "POST",
+          "summary": "创建用户",
+          "requestBody": {
+            "userId": "用户ID",
+            "userName": "用户姓名",
+            "password": "密码",
+            "operator": "操作者ID"
+          },
+          "response": "返回结果«object»"
+        },
+        "page": {
+          "path": "/user/page",
+          "method": "POST",
+          "summary": "查询用户列表",
+          "requestBody": {
+            "page": "起始页",
+            "size": "分页大小",
+            "offset": "偏移量",
+            "traceId": "事件号"
+          },
+          "response": "返回结果«分页对象«用户信息»»"
+        },
+        "detail": {
+          "path": "/user/detail",
+          "method": "GET",
+          "summary": "获取用户详情",
+          "params": {
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户id"
+            }
+          },
+          "response": "返回结果«用户信息»"
+        },
+        "name": {
+          "path": "/user/name",
+          "method": "GET",
+          "summary": "查询用户名称",
+          "params": {
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户id"
+            }
+          },
+          "response": "返回结果«string»"
+        },
+        "edit": {
+          "path": "/user/edit",
+          "method": "POST",
+          "summary": "修改用户",
+          "requestBody": {
+            "id": "主键",
+            "userId": "用户ID",
+            "userName": "用户姓名",
+            "password": "密码",
+            "operator": "操作者ID"
+          },
+          "response": "返回结果«object»"
+        },
+        "editpwd": {
+          "path": "/user/editpwd",
+          "method": "GET",
+          "summary": "修改用户密码",
+          "params": {
+            "userId": "用户ID",
+            "password": "密码",
+            "operator": "操作者ID"
+          },
+          "response": "返回结果«object»"
+        },
+        "editstatus": {
+          "path": "/user/editstatus",
+          "method": "GET",
+          "summary": "修改用户状态",
+          "params": {
+            "userId": "用户ID",
+            "status": "状态：0-正常，1-冻结",
+            "operator": "操作者ID"
+          },
+          "response": "返回结果«object»"
+        }
+      }
+    }
+  },
+  "models": {
+    "条码信息": {
+      "id": "主键",
+      "projectCode": "项目编码",
+      "materialCode": "物料编码",
+      "nameModel": "名称型号",
+      "drawingVersion": "图纸版本",
+      "technicalVersion": "技术版本",
+      "supplierCode": "供货商代码",
+      "unit": "单位",
+      "cnt": "数量",
+      "lineName": "生产线",
+      "productionDateStart": "生产日期开始",
+      "productionDateEnd": "生产日期结束",
+      "deliveryDate": "送货日期",
+      "code09": "09码",
+      "codeSn": "SN码",
+      "factoryCode": "出厂码",
+      "accessoryCnt": "附件数量",
+      "printStatus": "打印状态 0-未打印1-部份打印2-已打印",
+      "btPrintCnt": "本体码打印次数",
+      "nbzPrintCnt": "内包装码打印次数",
+      "wbzPrintCnt": "送货外包装码打印次数",
+      "creator": "创建者ID",
+      "createTime": "创建时间",
+      "modifier": "修改者ID",
+      "modifiyTime": "修改时间"
+    },
+    "内包装码打印信息": {
+      "id": "主键",
+      "partNo": "客户物料编号-根据此生成条码",
+      "supplierCode": "供货商代码-根据此生成条码",
+      "codeSN": "SN码12-根据该码生成二维码",
+      "dcDate": "生产日期",
+      "qty": "？待定",
+      "remark": "描述"
+    },
+    "外包装码打印信息": {
+      "id": "主键",
+      "materialCode": "物料编码",
+      "nameModel": "名称型号",
+      "supplierCode": "供货商代码",
+      "unit": "单位",
+      "cnt": "数量",
+      "codeSN": "SN码12-根据该码生成二维码",
+      "deliveryDate": "送货日期",
+      "deliveryNo": "送货单号--待定",
+      "poNo": "po行号----待定",
+      "saveClean": "存储 清洁--待定"
+    },
+    "用户信息": {
+      "id": "主键",
+      "userId": "用户ID",
+      "userName": "用户姓名",
+      "password": "用户密码",
+      "status": "用户状态：0-正常，1-冻结",
+      "creator": "创建者ID",
+      "createTime": "创建时间",
+      "modifier": "修改者ID",
+      "modifiyTime": "修改时间"
+    },
+    "用户登录返回响应": {
+      "userId": "用户号",
+      "userName": "姓名",
+      "token": "token",
+      "status": "用户状态：0-正常，1-冻结"
+    },
+    "返回结果": {
+      "success": "是否成功，code为0的时候，即成功",
+      "code": "业务编号, 仅0为成功",
+      "msg": "业务信息",
+      "errorMsg": "错误信息即业务信息，为了兼容外部接口做的",
+      "data": "业务数据对象"
+    },
+    "分页对象": {
+      "result": "分页列表",
+      "total": "分页总条数",
+      "empty": "是否为空"
+    }
+  },
+  "enums": {
+    "printStatus": {
+      "0": "未打印",
+      "1": "部份打印",
+      "2": "已打印"
+    },
+    "userStatus": {
+      "0": "正常",
+      "1": "冻结"
+    }
+  }
+}

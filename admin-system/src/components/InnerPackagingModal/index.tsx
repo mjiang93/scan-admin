@@ -1,18 +1,30 @@
 /**
  * 内包装条码弹窗组件
  */
-import React, { useRef } from 'react';
-import { Modal, Button, Space } from 'antd';
+import React, { useRef, useState, useEffect } from 'react';
+import { Modal, Button, Space, message } from 'antd';
 import { PrinterOutlined } from '@ant-design/icons';
 import JsBarcode from 'jsbarcode';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord } from '@/types/print';
+import { scanBtcode, updatePrintStatus } from '@/services/print';
+import { getStorage } from '@/utils/storage';
 import './index.css';
 
 interface InnerPackagingModalProps {
   visible: boolean;
   onClose: () => void;
   record: BarcodeRecord | null;
+}
+
+interface PrintData {
+  partNo: string;
+  qty: number;
+  description: string;
+  dc: string;
+  supplierCode: string;
+  sn: string;
+  qrCodeData: string;
 }
 
 const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
@@ -23,13 +35,63 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
   const barcodeRef = useRef<SVGSVGElement>(null);
   const supplierBarcodeRef = useRef<SVGSVGElement>(null);
   const printContentRef = useRef<HTMLDivElement>(null);
+  
+  const [printData, setPrintData] = useState<PrintData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [recordId, setRecordId] = useState<string>('');
+
+  // 加载打印数据
+  const loadPrintData = async () => {
+    if (!record?.snCode) return;
+    
+    setLoading(true);
+    try {
+      // 调用扫本体码接口获取内包装码打印信息
+      const detail = await scanBtcode(record.snCode);
+      
+      if (detail) {
+        // 保存记录ID用于更新打印状态
+        setRecordId(detail.id);
+        
+        // 格式化日期
+        const dcDate = detail.dcDate 
+          ? new Date(parseInt(detail.dcDate)).toISOString().split('T')[0]
+          : '';
+        
+        const mappedData: PrintData = {
+          partNo: detail.partNo || '',
+          qty: detail.qty ? parseInt(detail.qty) : 1,
+          description: detail.remark || '',
+          dc: dcDate,
+          supplierCode: detail.supplierCode || '',
+          sn: detail.codeSN || '',
+          qrCodeData: `PartNo:${detail.partNo || ''};QTY:${detail.qty || 1};DC:${dcDate};SN:${detail.codeSN || ''}`
+        };
+        
+        setPrintData(mappedData);
+      }
+    } catch (error) {
+      console.error('加载打印数据失败:', error);
+      message.error('加载打印数据失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 当弹窗打开时加载数据
+  useEffect(() => {
+    if (visible && record) {
+      loadPrintData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, record]);
 
   // 生成条形码
   React.useEffect(() => {
-    if (!record) return;
+    if (!printData) return;
     
     if (visible && barcodeRef.current) {
-      JsBarcode(barcodeRef.current, record.projectCode || '0240A00ATC', {
+      JsBarcode(barcodeRef.current, printData.partNo || '0240A00ATC', {
         format: 'CODE128',
         width: 2,
         height: 60,
@@ -39,7 +101,7 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
     }
     
     if (visible && supplierBarcodeRef.current) {
-      JsBarcode(supplierBarcodeRef.current, 'HZ', {
+      JsBarcode(supplierBarcodeRef.current, printData.supplierCode || 'HZ', {
         format: 'CODE128',
         width: 3,
         height: 40,
@@ -47,16 +109,20 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
         margin: 0,
       });
     }
-  }, [visible, record]);
+  }, [visible, printData]);
 
-  if (!record) return null;
+  if (!record || !printData) return null;
 
   // 处理打印操作
-  const handlePrint = () => {
-    if (!printContentRef.current || !record) return;
+  const handlePrint = async () => {
+    if (!printContentRef.current || !printData) return;
     
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
+    try {
+      // 等待Canvas渲染完成
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
       // 获取当前页面的所有样式表
       const styles = Array.from(document.styleSheets)
         .map(styleSheet => {
@@ -244,11 +310,30 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
       printWindow.document.close();
       
       // 等待内容加载完成后再打印
-      setTimeout(() => {
+      setTimeout(async () => {
         printWindow.focus();
         printWindow.print();
         printWindow.close();
+        
+        // 更新打印状态
+        if (recordId) {
+          try {
+            const userInfo = getStorage<{ id: string; username: string }>('userInfo');
+            await updatePrintStatus({
+              id: parseInt(recordId),
+              operator: userInfo?.username || 'unknown',
+              nbzPrintCnt: 1
+            });
+            message.success('打印任务已发送');
+          } catch (error) {
+            console.error('更新打印状态失败:', error);
+          }
+        }
       }, 500);
+    }
+    } catch (error) {
+      console.error('打印失败:', error);
+      message.error('打印失败，请重试');
     }
   };
 
@@ -270,63 +355,67 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
           </div>
         </div>
 
-        <div className="barcode-container" ref={printContentRef}>
-          <div className="barcode-info">
-            <div className="part-info">
-              <span className="part-label">PartNO: </span>
-              <span className="part-value">{record.projectCode || '0240A00ATC'}</span>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>加载中...</div>
+        ) : (
+          <div className="barcode-container" ref={printContentRef}>
+            <div className="barcode-info">
+              <div className="part-info">
+                <span className="part-label">PartNO: </span>
+                <span className="part-value">{printData.partNo}</span>
+              </div>
+
+              <div className="barcode-image">
+                <svg ref={barcodeRef}></svg>
+              </div>
+
+              <div className="info-row">
+                <div className="info-item">
+                  <span className="label">QTY: </span>
+                  <span className="value">{printData.qty}</span>
+                </div>
+              </div>
+
+              <div className="info-row">
+                <div className="info-item">
+                  <span className="label">描述: </span>
+                  <span className="value">{printData.description}</span>
+                </div>
+              </div>
+
+              <div className="info-row">
+                <div className="info-item full-width">
+                  <span className="label">SN: </span>
+                  <span className="value">{printData.sn}</span>
+                </div>
+              </div>
+
+              <div className="qr-code-section">
+                <QRCodeSVG
+                  value={printData.qrCodeData}
+                  size={80}
+                  level="M"
+                />
+              </div>
             </div>
 
-            <div className="barcode-image">
-              <svg ref={barcodeRef}></svg>
-            </div>
-
-            <div className="info-row">
+            <div className="right-info">
               <div className="info-item">
-                <span className="label">QTY: </span>
-                <span className="value">1</span>
+                <span className="label">D/C: </span>
+                <span className="value">{printData.dc}</span>
               </div>
-            </div>
 
-            <div className="info-row">
               <div className="info-item">
-                <span className="label">描述: </span>
-                <span className="value">{record.remark || 'APDB16'}</span>
+                <span className="label">供应商代码: </span>
+                <span className="value">{printData.supplierCode}</span>
               </div>
-            </div>
 
-            <div className="info-row">
-              <div className="info-item full-width">
-                <span className="label">SN: </span>
-                <span className="value">{record.snCode || 'S0000012A001IP9302A01RG52PA01'}</span>
+              <div className="supplier-barcode">
+                <svg ref={supplierBarcodeRef}></svg>
               </div>
-            </div>
-
-            <div className="qr-code-section">
-              <QRCodeSVG
-                value={record.snCode || 'S0000012A001IP9302A01RG52PA01'}
-                size={80}
-                level="M"
-              />
             </div>
           </div>
-
-          <div className="right-info">
-            <div className="info-item">
-              <span className="label">D/C: </span>
-              <span className="value">{record.deliveryDate || '2025-07-14'}</span>
-            </div>
-
-            <div className="info-item">
-              <span className="label">供应商代码: </span>
-              <span className="value">HZ</span>
-            </div>
-
-            <div className="supplier-barcode">
-              <svg ref={supplierBarcodeRef}></svg>
-            </div>
-          </div>
-        </div>
+        )}
 
         <div className="modal-footer">
           <Space>
@@ -334,6 +423,7 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
               type="primary" 
               icon={<PrinterOutlined />}
               onClick={handlePrint}
+              disabled={loading || !printData}
             >
               打印
             </Button>

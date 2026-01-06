@@ -24,7 +24,7 @@ const BarcodeDemo: React.FC = () => {
     templateSnCode: '00000124A001',
     circuitBoardCode: 'PCB001',
     accessories: '2件',
-    printStatus: 'pending' as const,
+    printStatus: 'unprintedStatus' as const,
     printCount: 0,
     createTime: '2024-01-15 10:30:00',
     remark: '演示数据',

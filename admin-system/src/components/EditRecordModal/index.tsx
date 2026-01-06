@@ -73,12 +73,16 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         return;
       }
 
+      // 获取当前用户信息
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const operator = userInfo.username || 'admin';
+
       // 构造API需要的数据格式
-      const updateData: ApiBarcodeRecord = {
+      const updateData: ApiBarcodeRecord & { operator: string } = {
         id: record.id,
         projectCode: values.projectCode,
-        productionDateStart: values.productionDateStart?.toISOString() || '',
-        productionDateEnd: values.productionDateEnd?.toISOString() || '',
+        productionDateStart: values.productionDateStart?.format('YYYY-MM-DD') || '',
+        productionDateEnd: values.productionDateEnd?.format('YYYY-MM-DD') || '',
         lineName: values.lineName,
         technicalVersion: values.technicalVersion,
         nameModel: values.nameModel,
@@ -89,8 +93,8 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         codeSn: values.codeSn,
         code09: values.code09,
         materialCode: values.materialCode,
-        deliveryDate: values.deliveryDate?.valueOf()?.toString() || '',
-        accessoryCnt: values.accessoryCnt,
+        deliveryDate: values.deliveryDate?.format('YYYY-MM-DD') || '',
+        accessoryCnt: values.accessoryCnt || 0,
         drawingVersion: values.drawingVersion,
         // 保持原有的其他字段
         btPrintCnt: 0,
@@ -98,9 +102,10 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         wbzPrintCnt: 0,
         printStatus: 0,
         createTime: record.createTime,
-        creator: 'admin',
-        modifier: 'admin',
-        modifiyTime: new Date().toISOString(),
+        creator: operator,
+        modifier: operator,
+        modifiyTime: null,
+        operator: operator, // 添加操作人字段
       };
 
       const response = await updateBarcodeRecord(updateData);

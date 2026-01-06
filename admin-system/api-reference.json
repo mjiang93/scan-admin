@@ -24,14 +24,34 @@
         "list": {
           "path": "/pc/page",
           "method": "POST",
-          "summary": "查询用户列表",
+          "summary": "查询条码列表",
           "requestBody": {
-            "page": "起始页",
-            "size": "分页大小",
-            "deliveryDateStart": "送货日期开始",
-            "deliveryDateEnd": "送货日期结束",
-            "offset": "偏移量",
-            "traceId": "事件号"
+            "page": {
+              "type": "integer",
+              "description": "起始页"
+            },
+            "size": {
+              "type": "integer",
+              "description": "分页大小"
+            },
+            "deliveryDateStart": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期开始"
+            },
+            "deliveryDateEnd": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期结束"
+            },
+            "offset": {
+              "type": "integer",
+              "description": "偏移量"
+            },
+            "traceId": {
+              "type": "string",
+              "description": "事件号"
+            }
           },
           "response": "返回结果«分页对象«条码信息»»"
         },
@@ -78,11 +98,35 @@
           "method": "POST",
           "summary": "打印更新打印状态-点打印按扭时调用",
           "requestBody": {
-            "id": "主键",
-            "operator": "操作人",
-            "btPrintCnt": "本体码打印状态 1-打印",
-            "nbzPrintCnt": "内包装码打印状态 1-打印",
-            "wbzPrintCnt": "送货外包装码打印 1-打印"
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "required": true,
+              "description": "主键"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            },
+            "btPrintCnt": {
+              "type": "integer",
+              "format": "int32",
+              "required": true,
+              "description": "本体码打印状态 1-打印"
+            },
+            "nbzPrintCnt": {
+              "type": "integer",
+              "format": "int32",
+              "required": true,
+              "description": "内包装码打印状态 1-打印"
+            },
+            "wbzPrintCnt": {
+              "type": "integer",
+              "format": "int32",
+              "required": true,
+              "description": "送货外包装码打印 1-打印"
+            }
           },
           "response": "返回结果«object»"
         },
@@ -91,9 +135,26 @@
           "method": "POST",
           "summary": "批量更新送货日期",
           "requestBody": {
-            "ids": "主键集合",
-            "deliveryDate": "送货日期",
-            "operator": "操作人"
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "required": true,
+              "description": "主键集合"
+            },
+            "deliveryDate": {
+              "type": "string",
+              "format": "date-time",
+              "required": true,
+              "description": "送货日期"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
           },
           "response": "返回结果«object»"
         },
@@ -102,9 +163,26 @@
           "method": "POST",
           "summary": "批量更新附件",
           "requestBody": {
-            "ids": "主键集合",
-            "accessoryCnt": "附件数量",
-            "operator": "操作人"
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "required": true,
+              "description": "主键集合"
+            },
+            "accessoryCnt": {
+              "type": "integer",
+              "format": "int32",
+              "required": true,
+              "description": "附件数量"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
           },
           "response": "返回结果«object»"
         }
@@ -113,24 +191,79 @@
     "pda": {
       "name": "PDA端-条码相关接口",
       "endpoints": {
+        "page": {
+          "path": "/pda/page",
+          "method": "POST",
+          "summary": "查询条码列表",
+          "requestBody": {
+            "page": {
+              "type": "integer",
+              "description": "起始页"
+            },
+            "size": {
+              "type": "integer",
+              "description": "分页大小"
+            },
+            "deliveryDateStart": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期开始"
+            },
+            "deliveryDateEnd": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期结束"
+            },
+            "offset": {
+              "type": "integer",
+              "description": "偏移量"
+            },
+            "traceId": {
+              "type": "string",
+              "description": "事件号"
+            }
+          },
+          "response": "返回结果«分页对象«条码信息»»"
+        },
         "scanpcode": {
           "path": "/pda/scanpcode",
-          "method": "GET",
-          "summary": "扫描项目编码，生成条码信息",
+          "method": "POST",
+          "summary": "扫描产品编码，生成条码信息",
           "requestBody": {
-            "projectCode": "项目编码",
-            "operator": "操作人"
+            "projectCode": {
+              "type": "string",
+              "required": true,
+              "description": "产品编码"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
           },
           "response": "返回结果«条码信息»"
         },
         "scanfcode": {
           "path": "/pda/scanfcode",
-          "method": "GET",
+          "method": "POST",
           "summary": "扫描MOM系统出厂编码，绑定生成的条码信息",
           "requestBody": {
-            "id": "条码信息主键ID",
-            "factoryCode": "出厂码",
-            "operator": "操作人"
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "required": true,
+              "description": "条码信息主键ID"
+            },
+            "factoryCode": {
+              "type": "string",
+              "required": true,
+              "description": "出厂码"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
           },
           "response": "返回结果«条码信息»"
         },
@@ -193,8 +326,16 @@
           "method": "POST",
           "summary": "用户登陆",
           "requestBody": {
-            "userId": "用户ID",
-            "password": "密码"
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户ID"
+            },
+            "password": {
+              "type": "string",
+              "required": true,
+              "description": "密码"
+            }
           },
           "response": "返回结果«用户登录返回响应»"
         },
@@ -203,10 +344,32 @@
           "method": "POST",
           "summary": "创建用户",
           "requestBody": {
-            "userId": "用户ID",
-            "userName": "用户姓名",
-            "password": "密码",
-            "operator": "操作者ID"
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "required": true,
+              "description": "主键"
+            },
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户ID"
+            },
+            "userName": {
+              "type": "string",
+              "required": true,
+              "description": "用户姓名"
+            },
+            "password": {
+              "type": "string",
+              "required": true,
+              "description": "密码"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
           },
           "response": "返回结果«object»"
         },
@@ -215,10 +378,22 @@
           "method": "POST",
           "summary": "查询用户列表",
           "requestBody": {
-            "page": "起始页",
-            "size": "分页大小",
-            "offset": "偏移量",
-            "traceId": "事件号"
+            "page": {
+              "type": "integer",
+              "description": "起始页"
+            },
+            "size": {
+              "type": "integer",
+              "description": "分页大小"
+            },
+            "offset": {
+              "type": "integer",
+              "description": "偏移量"
+            },
+            "traceId": {
+              "type": "string",
+              "description": "事件号"
+            }
           },
           "response": "返回结果«分页对象«用户信息»»"
         },
@@ -253,11 +428,32 @@
           "method": "POST",
           "summary": "修改用户",
           "requestBody": {
-            "id": "主键",
-            "userId": "用户ID",
-            "userName": "用户姓名",
-            "password": "密码",
-            "operator": "操作者ID"
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "required": true,
+              "description": "主键"
+            },
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户ID"
+            },
+            "userName": {
+              "type": "string",
+              "required": true,
+              "description": "用户姓名"
+            },
+            "password": {
+              "type": "string",
+              "required": true,
+              "description": "密码"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
           },
           "response": "返回结果«object»"
         },
@@ -266,9 +462,21 @@
           "method": "GET",
           "summary": "修改用户密码",
           "params": {
-            "userId": "用户ID",
-            "password": "密码",
-            "operator": "操作者ID"
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户ID"
+            },
+            "password": {
+              "type": "string",
+              "required": true,
+              "description": "密码"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
           },
           "response": "返回结果«object»"
         },
@@ -277,9 +485,21 @@
           "method": "GET",
           "summary": "修改用户状态",
           "params": {
-            "userId": "用户ID",
-            "status": "状态：0-正常，1-冻结",
-            "operator": "操作者ID"
+            "userId": {
+              "type": "string",
+              "required": true,
+              "description": "用户ID"
+            },
+            "status": {
+              "type": "string",
+              "required": true,
+              "description": "状态：0-正常，1-冻结"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
           },
           "response": "返回结果«object»"
         }
@@ -288,82 +508,321 @@
   },
   "models": {
     "条码信息": {
-      "id": "主键",
-      "projectCode": "项目编码",
-      "materialCode": "物料编码",
-      "nameModel": "名称型号",
-      "drawingVersion": "图纸版本",
-      "technicalVersion": "技术版本",
-      "supplierCode": "供货商代码",
-      "unit": "单位",
-      "cnt": "数量",
-      "lineName": "生产线",
-      "productionDateStart": "生产日期开始",
-      "productionDateEnd": "生产日期结束",
-      "deliveryDate": "送货日期",
-      "code09": "09码",
-      "codeSn": "SN码",
-      "factoryCode": "出厂码",
-      "accessoryCnt": "附件数量",
-      "printStatus": "打印状态 0-未打印1-部份打印2-已打印",
-      "btPrintCnt": "本体码打印次数",
-      "nbzPrintCnt": "内包装码打印次数",
-      "wbzPrintCnt": "送货外包装码打印次数",
-      "creator": "创建者ID",
-      "createTime": "创建时间",
-      "modifier": "修改者ID",
-      "modifiyTime": "修改时间"
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "description": "主键"
+      },
+      "projectCode": {
+        "type": "string",
+        "description": "项目编码"
+      },
+      "productCode": {
+        "type": "string",
+        "description": "产品编码"
+      },
+      "productName": {
+        "type": "string",
+        "description": "产品名称"
+      },
+      "orderCode": {
+        "type": "string",
+        "description": "单据编码"
+      },
+      "materialCode": {
+        "type": "string",
+        "description": "物料编码"
+      },
+      "nameModel": {
+        "type": "string",
+        "description": "名称型号"
+      },
+      "model": {
+        "type": "string",
+        "description": "本体码model"
+      },
+      "drawingVersion": {
+        "type": "string",
+        "description": "图纸版本"
+      },
+      "technicalVersion": {
+        "type": "string",
+        "description": "技术版本"
+      },
+      "supplierCode": {
+        "type": "string",
+        "description": "供货商代码"
+      },
+      "unit": {
+        "type": "string",
+        "description": "单位"
+      },
+      "cnt": {
+        "type": "string",
+        "description": "数量"
+      },
+      "lineName": {
+        "type": "string",
+        "description": "生产线"
+      },
+      "productionDateStart": {
+        "type": "string",
+        "format": "date-time",
+        "description": "生产日期开始"
+      },
+      "productionDateEnd": {
+        "type": "string",
+        "format": "date-time",
+        "description": "生产日期结束"
+      },
+      "deliveryDate": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期"
+      },
+      "code09": {
+        "type": "string",
+        "description": "09码/批号"
+      },
+      "codeSn": {
+        "type": "string",
+        "description": "SN码"
+      },
+      "factoryCode": {
+        "type": "string",
+        "description": "出厂码"
+      },
+      "pohh": {
+        "type": "string",
+        "description": "po行号"
+      },
+      "accessoryCnt": {
+        "type": "integer",
+        "format": "int32",
+        "description": "附件数量"
+      },
+      "printStatus": {
+        "type": "integer",
+        "format": "int32",
+        "description": "打印状态 0-未打印1-部份打印2-已打印"
+      },
+      "btPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "description": "本体码打印次数"
+      },
+      "nbzPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "description": "内包装码打印次数"
+      },
+      "wbzPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "description": "送货外包装码打印次数"
+      },
+      "creator": {
+        "type": "string",
+        "description": "创建者ID"
+      },
+      "createTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "创建时间"
+      },
+      "modifier": {
+        "type": "string",
+        "description": "修改者ID"
+      },
+      "modifiyTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "修改时间"
+      }
     },
     "内包装码打印信息": {
-      "id": "主键",
-      "partNo": "客户物料编号-根据此生成条码",
-      "supplierCode": "供货商代码-根据此生成条码",
-      "codeSN": "SN码12-根据该码生成二维码",
-      "dcDate": "生产日期",
-      "qty": "？待定",
-      "remark": "描述"
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "description": "主键"
+      },
+      "partNo": {
+        "type": "string",
+        "description": "客户物料编号-根据此生成条码"
+      },
+      "supplierCode": {
+        "type": "string",
+        "description": "供货商代码-根据此生成条码"
+      },
+      "codeSN": {
+        "type": "string",
+        "description": "SN码12-根据该码生成二维码"
+      },
+      "dcDate": {
+        "type": "string",
+        "format": "date-time",
+        "description": "生产日期"
+      },
+      "qty": {
+        "type": "string",
+        "description": "数量"
+      },
+      "remark": {
+        "type": "string",
+        "description": "描述"
+      }
     },
     "外包装码打印信息": {
-      "id": "主键",
-      "materialCode": "物料编码",
-      "nameModel": "名称型号",
-      "supplierCode": "供货商代码",
-      "unit": "单位",
-      "cnt": "数量",
-      "codeSN": "SN码12-根据该码生成二维码",
-      "deliveryDate": "送货日期",
-      "deliveryNo": "送货单号--待定",
-      "poNo": "po行号----待定",
-      "saveClean": "存储 清洁--待定"
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "description": "主键"
+      },
+      "materialCode": {
+        "type": "string",
+        "description": "物料编码"
+      },
+      "nameModel": {
+        "type": "string",
+        "description": "名称型号"
+      },
+      "supplierCode": {
+        "type": "string",
+        "description": "供货商代码"
+      },
+      "unit": {
+        "type": "string",
+        "description": "单位"
+      },
+      "cnt": {
+        "type": "integer",
+        "format": "int32",
+        "description": "数量"
+      },
+      "code09": {
+        "type": "string",
+        "description": "批号"
+      },
+      "codeSN": {
+        "type": "string",
+        "description": "SN码12-根据该码生成二维码"
+      },
+      "deliveryDate": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期"
+      },
+      "deliveryNo": {
+        "type": "string",
+        "description": "送货单号--空"
+      },
+      "poNo": {
+        "type": "string",
+        "description": "po行号"
+      },
+      "saveClean": {
+        "type": "string",
+        "description": "存储 清洁"
+      }
     },
     "用户信息": {
-      "id": "主键",
-      "userId": "用户ID",
-      "userName": "用户姓名",
-      "password": "用户密码",
-      "status": "用户状态：0-正常，1-冻结",
-      "creator": "创建者ID",
-      "createTime": "创建时间",
-      "modifier": "修改者ID",
-      "modifiyTime": "修改时间"
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "description": "主键"
+      },
+      "userId": {
+        "type": "string",
+        "description": "用户ID"
+      },
+      "userName": {
+        "type": "string",
+        "description": "用户姓名"
+      },
+      "password": {
+        "type": "string",
+        "description": "用户密码"
+      },
+      "status": {
+        "type": "integer",
+        "format": "int32",
+        "description": "用户状态：0-正常，1-冻结"
+      },
+      "creator": {
+        "type": "string",
+        "description": "创建者ID"
+      },
+      "createTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "创建时间"
+      },
+      "modifier": {
+        "type": "string",
+        "description": "修改者ID"
+      },
+      "modifiyTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "修改时间"
+      }
     },
     "用户登录返回响应": {
-      "userId": "用户号",
-      "userName": "姓名",
-      "token": "token",
-      "status": "用户状态：0-正常，1-冻结"
+      "userId": {
+        "type": "string",
+        "description": "用户号"
+      },
+      "userName": {
+        "type": "string",
+        "description": "姓名"
+      },
+      "token": {
+        "type": "string",
+        "description": "token"
+      },
+      "status": {
+        "type": "integer",
+        "format": "int32",
+        "description": "用户状态：0-正常，1-冻结"
+      }
     },
     "返回结果": {
-      "success": "是否成功，code为0的时候，即成功",
-      "code": "业务编号, 仅0为成功",
-      "msg": "业务信息",
-      "errorMsg": "错误信息即业务信息，为了兼容外部接口做的",
-      "data": "业务数据对象"
+      "success": {
+        "type": "boolean",
+        "description": "是否成功，code为0的时候，即成功"
+      },
+      "code": {
+        "type": "integer",
+        "format": "int32",
+        "description": "业务编号, 仅0为成功"
+      },
+      "msg": {
+        "type": "string",
+        "description": "业务信息"
+      },
+      "errorMsg": {
+        "type": "string",
+        "description": "错误信息即业务信息，为了兼容外部接口做的"
+      },
+      "data": {
+        "type": "object",
+        "description": "业务数据对象"
+      }
     },
     "分页对象": {
-      "result": "分页列表",
-      "total": "分页总条数",
-      "empty": "是否为空"
+      "result": {
+        "type": "array",
+        "description": "分页列表"
+      },
+      "total": {
+        "type": "integer",
+        "format": "int32",
+        "description": "分页总条数"
+      },
+      "empty": {
+        "type": "boolean",
+        "description": "是否为空"
+      }
     }
   },
   "enums": {

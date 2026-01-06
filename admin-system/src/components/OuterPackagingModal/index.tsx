@@ -1,11 +1,12 @@
 /**
  * 外包装弹窗组件 - 供应商送货标签
  */
-import React from 'react';
-import { Modal, Button, Space } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Space, message } from 'antd';
 import { PrinterOutlined } from '@ant-design/icons';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord } from '@/types/print';
+import { scanNbzcode } from '@/services/print';
 import './index.css';
 
 interface OuterPackagingModalProps {
@@ -14,16 +15,57 @@ interface OuterPackagingModalProps {
   record: BarcodeRecord | null;
 }
 
+interface OuterPackagingData {
+  id: number;
+  materialCode: string;
+  nameModel: string;
+  supplierCode: string;
+  unit: string;
+  cnt: number;
+  code09: string;
+  codeSN: string;
+  deliveryDate: string;
+  deliveryNo: string;
+  poNo: string;
+  saveClean: string;
+}
+
 const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
   visible,
   onClose,
   record
 }) => {
+  const [loading, setLoading] = useState(false);
+  const [outerPackagingData, setOuterPackagingData] = useState<OuterPackagingData | null>(null);
+
+  // 加载外包装数据
+  const loadData = async (code: string) => {
+    setLoading(true);
+    try {
+      const data = await scanNbzcode(code);
+      setOuterPackagingData(data);
+    } catch (error) {
+      console.error('获取外包装信息失败:', error);
+      message.error('获取外包装信息失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 当弹窗打开时自动调用接口获取数据
+  useEffect(() => {
+    if (visible && record?.snCode) {
+      loadData(record.snCode);
+    } else if (!visible) {
+      setOuterPackagingData(null);
+    }
+  }, [visible, record]);
+
   if (!record) return null;
 
   // 处理打印操作
   const handlePrint = () => {
-    console.log('打印外包装标签:', record);
+    console.log('打印外包装标签:', outerPackagingData || record);
     
     // 获取打印内容（只获取标签容器）
     const printContent = document.querySelector('.delivery-label-container');
@@ -180,18 +222,20 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     };
   };
 
-  // 生成二维码数据
+  // 生成二维码数据 - 使用接口返回的codeSN
   const generateQRData = () => {
-    return JSON.stringify({
-      materialCode: record.circuitBoardCode || '0228A00179',
-      name: record.remark || '系统电源-3相交流380V-无',
-      quantity: 100,
-      supplierCode: 'Bxxxxxx',
-      poNumber: 'PO620120240819000316',
-      batchNumber: 'XXXXXXXXXXXXXXX',
-      deliveryDate: record.deliveryDate || '2024-09-01',
-      snCode: record.snCode || 'S0000012A001IP9302A01RG52PA01'
-    });
+    return outerPackagingData?.codeSN || record.snCode || 'S0000012A001IP9302A01RG52PA01';
+  };
+
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('zh-CN');
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
@@ -212,64 +256,81 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
           </div>
         </div>
 
-        <div className="delivery-label-container">
-          <div className="label-header">
-            <h3>供应商送货标签</h3>
-          </div>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>加载中...</div>
+        ) : (
+          <div className="delivery-label-container">
+            <div className="label-header">
+              <h3>供应商送货标签</h3>
+            </div>
 
-          <table className="delivery-table">
-            <tbody>
-              <tr>
-                <td className="label-cell">物料编码</td>
-                <td className="value-cell" colSpan={2}>{record.circuitBoardCode || '0228A00179'}</td>
-                <td className="qr-section" rowSpan={2}>
-                  <div className="qr-code-container">
-                    <div className="qr-code">
-                      <QRCodeSVG
-                        value={generateQRData()}
-                        size={90}
-                        level="M"
-                        fgColor="#000000"
-                        bgColor="#ffffff"
-                      />
+            <table className="delivery-table">
+              <tbody>
+                <tr>
+                  <td className="label-cell">物料编码</td>
+                  <td className="value-cell" colSpan={2}>
+                    {outerPackagingData?.materialCode || record.circuitBoardCode || '0228A00179'}
+                  </td>
+                  <td className="qr-section" rowSpan={2}>
+                    <div className="qr-code-container">
+                      <div className="qr-code">
+                        <QRCodeSVG
+                          value={generateQRData()}
+                          size={90}
+                          level="M"
+                          fgColor="#000000"
+                          bgColor="#ffffff"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="label-cell">名称型号</td>
-                <td className="value-cell multi-line" colSpan={2}>{record.remark || '系统电源-3相交流380V-无'}</td>
-              </tr>
-              <tr>
-                <td className="label-cell">数量</td>
-                <td className="value-cell">100</td>
-                <td className="label-cell">单位</td>
-                <td className="value-cell">PCS</td>
-              </tr>
-              <tr>
-                <td className="label-cell">供应商代码</td>
-                <td className="value-cell">Bxxxxxx</td>
-                <td className="label-cell">送货日期</td>
-                <td className="value-cell">{record.deliveryDate || '2024-09-01'}</td>
-              </tr>
-              <tr>
-                <td className="label-cell">PO/行号</td>
-                <td className="value-cell" >PO620120240819000316</td>
-                <td className="label-cell">送货单号</td>
-                <td className="value-cell"></td>
-              </tr>
-              <tr>
-                <td className="label-cell">批号</td>
-                <td className="value-cell" colSpan={3}>XXXXXXXXXXXXXXX</td>
-              </tr>
-              <tr>
-                <td className="label-cell">存储/清洁</td>
-                <td className="value-cell" colSpan={3}>S50</td>
-              </tr>
-            </tbody>
-          </table>
-
-        </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label-cell">名称型号</td>
+                  <td className="value-cell multi-line" colSpan={2}>
+                    {outerPackagingData?.nameModel || record.remark || '系统电源-3相交流380V-无'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label-cell">数量</td>
+                  <td className="value-cell">{outerPackagingData?.cnt || 100}</td>
+                  <td className="label-cell">单位</td>
+                  <td className="value-cell">{outerPackagingData?.unit || 'PCS'}</td>
+                </tr>
+                <tr>
+                  <td className="label-cell">供应商代码</td>
+                  <td className="value-cell">
+                    {outerPackagingData?.supplierCode || 'Bxxxxxx'}
+                  </td>
+                  <td className="label-cell">送货日期</td>
+                  <td className="value-cell">
+                    {outerPackagingData ? formatDate(outerPackagingData.deliveryDate) : (record.deliveryDate || '2024-09-01')}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label-cell">PO/行号</td>
+                  <td className="value-cell">
+                    {outerPackagingData?.poNo || 'PO620120240819000316'}
+                  </td>
+                  <td className="label-cell">送货单号</td>
+                  <td className="value-cell">{outerPackagingData?.deliveryNo || ''}</td>
+                </tr>
+                <tr>
+                  <td className="label-cell">批号</td>
+                  <td className="value-cell" colSpan={3}>
+                    {outerPackagingData?.code09 || 'XXXXXXXXXXXXXXX'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label-cell">存储/清洁</td>
+                  <td className="value-cell" colSpan={3}>
+                    {outerPackagingData?.saveClean || 'S50'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="modal-footer">
           <Space>
@@ -277,6 +338,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
               type="primary" 
               icon={<PrinterOutlined />}
               onClick={handlePrint}
+              loading={loading}
             >
               打印
             </Button>

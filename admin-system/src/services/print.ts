@@ -1,7 +1,7 @@
 /**
  * 打印服务
  */
-import { post } from '@/utils/request';
+import { post, get } from '@/utils/request';
 import { setStorage, getStorage } from '@/utils/storage';
 import type {
   PrintConfig,
@@ -53,7 +53,7 @@ export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): 
 /**
  * 更新条码记录
  */
-export async function updateBarcodeRecord(data: ApiBarcodeRecord): Promise<PrintApiResponse<ApiBarcodeRecord>> {
+export async function updateBarcodeRecord(data: ApiBarcodeRecord & { operator?: string }): Promise<PrintApiResponse<ApiBarcodeRecord>> {
   try {
     const response = await post<PrintApiResponse<ApiBarcodeRecord>>('/pc/edit', data);
     return response;
@@ -93,6 +93,141 @@ export async function batchEditDeliveryDate(params: {
     return response;
   } catch (error) {
     console.error('批量修改送货时间失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 本体码打印预览-生成条码
+ */
+export async function getBtPrintInfo(params: {
+  id: string;
+  operator: string;
+}): Promise<PrintApiResponse<{
+  pnCode: string;
+  revCode: string;
+  modelCode: string;
+  codeSN: string;
+  fjList: string[];
+}>> {
+  try {
+    const response = await post<PrintApiResponse<{
+      pnCode: string;
+      revCode: string;
+      modelCode: string;
+      codeSN: string;
+      fjList: string[];
+    }>>('/pc/btprint', null, { params });
+    return response;
+  } catch (error) {
+    console.error('获取本体打印信息失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新打印状态
+ */
+export async function updatePrintStatus(params: {
+  id: number;
+  operator: string;
+  btPrintCnt?: number;
+  nbzPrintCnt?: number;
+  wbzPrintCnt?: number;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/editprint', params);
+    return response;
+  } catch (error) {
+    console.error('更新打印状态失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 扫描本体码获取内包装打印信息
+ */
+export async function scanBtcode(btcode: string): Promise<{
+  id: string;
+  partNo: string;
+  qty: string;
+  remark: string;
+  dcDate: string;
+  supplierCode: string;
+  codeSN: string;
+}> {
+  try {
+    const response = await get<{
+      code: number;
+      success: boolean;
+      data: {
+        id: string;
+        partNo: string;
+        qty: string;
+        remark: string;
+        dcDate: string;
+        supplierCode: string;
+        codeSN: string;
+      };
+      errorMsg: string;
+      msg: string;
+    }>('/pda/scanbtcode', { btcode });
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response.errorMsg || '获取内包装信息失败');
+  } catch (error) {
+    console.error('扫描本体码失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 扫描内包装码获取外包装打印信息
+ */
+export async function scanNbzcode(nbzcode: string): Promise<{
+  id: number;
+  materialCode: string;
+  nameModel: string;
+  supplierCode: string;
+  unit: string;
+  cnt: number;
+  code09: string;
+  codeSN: string;
+  deliveryDate: string;
+  deliveryNo: string;
+  poNo: string;
+  saveClean: string;
+}> {
+  try {
+    const response = await get<{
+      code: number;
+      success: boolean;
+      data: {
+        id: number;
+        materialCode: string;
+        nameModel: string;
+        supplierCode: string;
+        unit: string;
+        cnt: number;
+        code09: string;
+        codeSN: string;
+        deliveryDate: string;
+        deliveryNo: string;
+        poNo: string;
+        saveClean: string;
+      };
+      errorMsg: string;
+      msg: string;
+    }>('/pda/scannbzcode', { nbzcode });
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response.errorMsg || '获取外包装信息失败');
+  } catch (error) {
+    console.error('扫描内包装码失败:', error);
     throw error;
   }
 }

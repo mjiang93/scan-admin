@@ -19,7 +19,7 @@ export interface BarcodeRecord {
   templateSnCode: string;
   circuitBoardCode: string;
   accessories: string;
-  printStatus: 'pending' | 'printed' | 'completed';
+  printStatus: 'unprintedStatus' | 'partiallyPrinted' | 'printed';
   printCount: number;
   createTime: string;
   remark?: string;
@@ -40,7 +40,7 @@ export interface BarcodeQueryParams {
   deliveryDateEnd?: string;
   templateSnCode?: string;
   materialCode?: string; // API使用materialCode而不是circuitBoardCode
-  printStatus?: 'pending' | 'printed' | 'completed' | number;
+  printStatus?: number; // 0-未打印 1-部份打印 2-已打印
   page: number;
   size: number;
   offset?: number;
@@ -104,6 +104,18 @@ export interface ApiBarcodeRecord {
   technicalVersion: string;
   unit: string;
   wbzPrintCnt: number;
+  operator?: string; // 操作人字段（可选）
+}
+
+/**
+ * 本体打印数据
+ */
+export interface BtPrintData {
+  pnCode: string;
+  revCode: string;
+  modelCode: string;
+  codeSN: string;
+  fjList: string[]; // 条形码列表
 }
 
 /**

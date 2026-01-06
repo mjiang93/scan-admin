@@ -1,12 +1,14 @@
 /**
  * 条码二维码弹窗组件
  */
-import React, { useEffect, useRef } from 'react';
-import { Modal, Button, message, Space } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal, Button, message, Space, Spin } from 'antd';
 import { PrinterOutlined } from '@ant-design/icons';
 import JsBarcode from 'jsbarcode';
 import { QRCodeSVG } from 'qrcode.react';
-import type { BarcodeRecord } from '@/types/print';
+import type { BarcodeRecord, BtPrintData } from '@/types/print';
+import { getBtPrintInfo, updatePrintStatus } from '@/services/print';
+import { getStorage } from '@/utils/storage';
 import './index.css';
 
 interface BarcodeModalProps {
@@ -23,45 +25,74 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
   onClose,
   record,
 }) => {
-  const barcodeRef1 = useRef<SVGSVGElement>(null);
-  const barcodeRef2 = useRef<SVGSVGElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [printData, setPrintData] = useState<BtPrintData | null>(null);
+  const barcodeRefs = useRef<(SVGSVGElement | null)[]>([]);
   const printAreaRef = useRef<HTMLDivElement>(null);
+
+  // 加载本体打印数据
+  const loadPrintData = async () => {
+    if (!record) return;
+    
+    setLoading(true);
+    try {
+      const userInfo = getStorage<{ userName: string }>('userInfo');
+      const operator = userInfo?.userName || 'unknown';
+      
+      const response = await getBtPrintInfo({
+        id: record.id,
+        operator,
+      });
+      
+      if (response.success && response.data) {
+        setPrintData(response.data as unknown as BtPrintData);
+      } else {
+        message.error(response.errorMsg || '获取打印数据失败');
+      }
+    } catch (error) {
+      console.error('加载打印数据失败:', error);
+      message.error('加载打印数据失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (visible && record) {
+      loadPrintData();
+    } else {
+      setPrintData(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, record]);
 
   // 生成条形码
   useEffect(() => {
-    if (visible && record && barcodeRef1.current && barcodeRef2.current) {
+    if (visible && printData && printData.fjList && printData.fjList.length > 0) {
       try {
-        // 第一个条形码 - 使用SN码
-        const barcode1Text = `S${record.snCode}IP${record.projectCode}PA${record.code09}-001`;
-        JsBarcode(barcodeRef1.current, barcode1Text, {
-          format: 'CODE128',
-          width: 2,
-          height: 60,
-          displayValue: true,
-          fontSize: 14,
-          margin: 10,
-        });
-
-        // 第二个条形码 - 使用SN码变体
-        const barcode2Text = `S${record.snCode}IP${record.projectCode}PA${record.code09}-002`;
-        JsBarcode(barcodeRef2.current, barcode2Text, {
-          format: 'CODE128',
-          width: 2,
-          height: 60,
-          displayValue: true,
-          fontSize: 14,
-          margin: 10,
+        printData.fjList.forEach((barcodeValue, index) => {
+          const ref = barcodeRefs.current[index];
+          if (ref && barcodeValue) {
+            JsBarcode(ref, barcodeValue, {
+              format: 'CODE128',
+              width: 1.5,
+              height: 50,
+              displayValue: true,
+              fontSize: 10,
+              margin: 10,
+            });
+          }
         });
       } catch (error) {
         console.error('生成条形码失败:', error);
         message.error('生成条形码失败');
       }
     }
-  }, [visible, record]);
+  }, [visible, printData]);
 
   // 打印功能
-  const handlePrint = () => {
-    if (!printAreaRef.current || !record) return;
+  const handlePrint = async () => {
+    if (!printAreaRef.current || !record || !printData) return;
     
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -194,13 +225,32 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
         printWindow.print();
         printWindow.close();
       }, 500);
+
+      // 更新打印状态
+      try {
+        const userInfo = getStorage<{ userName: string }>('userInfo');
+        const operator = userInfo?.userName || 'unknown';
+        
+        await updatePrintStatus({
+          id: parseInt(record.id),
+          operator,
+          btPrintCnt: 1,
+        });
+        
+        message.success('打印任务已发送');
+      } catch (error) {
+        console.error('更新打印状态失败:', error);
+        // 不影响打印流程，只记录错误
+      }
     }
   };
 
   if (!record) return null;
 
   // 生成二维码内容
-  const qrCodeContent = `PN:${record.projectCode};Rev:${record.techVersion};Model:${record.factoryCode};SN:${record.snCode}`;
+  const qrCodeContent = printData 
+    ? `PN:${printData.pnCode || ''};Rev:${printData.revCode || ''};Model:${printData.modelCode || ''};SN:${printData.codeSN || ''}`
+    : '';
 
   return (
     <Modal
@@ -216,12 +266,10 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
               type="primary" 
               icon={<PrinterOutlined />}
               onClick={handlePrint}
+              disabled={loading || !printData}
             >
               打印
             </Button>
-            {/* <Button type="primary" className="print-button" onClick={handlePrint}>
-              打印
-            </Button> */}
             <Button onClick={onClose}>
               取消
             </Button>
@@ -230,57 +278,58 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       }
       className="barcode-modal"
     >
-      <div className="barcode-modal-content">
-        {/* 标题信息 */}
-        <div className="barcode-header">
-          <div className="barcode-title">本体条码</div>
-          <div className="barcode-subtitle">本体条码</div>
-          <div className="barcode-size">尺寸：42mm*10mm</div>
-        </div>
-
-        {/* 二维码和产品信息区域 */}
-        <div ref={printAreaRef}>
-          <div className="qr-section">
-            <div className="qr-content">
-              <div className="qr-code-container">
-                <QRCodeSVG
-                  value={qrCodeContent}
-                  size={100}
-                  level="M"
-                />
-              </div>
-              <div className="product-info">
-                <div className="info-line">
-                  <span className="info-label">PN:</span>
-                  <span className="info-value">{record.projectCode}</span>
-                  <span className="info-label">Rev:</span>
-                  <span className="info-value">{record.techVersion}</span>
-                </div>
-                <div className="info-line">
-                  <span className="info-label">Model:</span>
-                  <span className="info-value">{record.factoryCode}</span>
-                </div>
-                <div className="info-line">
-                  <span className="info-label">SN:</span>
-                  <span className="info-value">{record.snCode}</span>
-                </div>
-              </div>
-            </div>
+      <Spin spinning={loading}>
+        <div className="barcode-modal-content">
+          {/* 标题信息 */}
+          <div className="barcode-header">
+            <div className="barcode-title">本体条码</div>
+            <div className="barcode-subtitle">本体条码</div>
+            <div className="barcode-size">尺寸：42mm*10mm</div>
           </div>
 
-          {/* 条形码区域 */}
-          <div className="barcode-section">
-            <div className="barcode-item">
-              <svg ref={barcodeRef1}></svg>
-            </div>
-            <div className="barcode-item">
-              <svg ref={barcodeRef2}></svg>
-            </div>
-          </div>
-        </div>
+          {/* 二维码和产品信息区域 */}
+          {printData && (
+            <div ref={printAreaRef}>
+              <div className="qr-section">
+                <div className="qr-content">
+                  <div className="qr-code-container">
+                    <QRCodeSVG
+                      value={qrCodeContent}
+                      size={100}
+                      level="M"
+                    />
+                  </div>
+                  <div className="product-info">
+                    <div className="info-line">
+                      <span className="info-label">PN:</span>
+                      <span className="info-value">{printData.pnCode || ''}</span>
+                      <span className="info-label">Rev:</span>
+                      <span className="info-value">{printData.revCode || ''}</span>
+                    </div>
+                    <div className="info-line">
+                      <span className="info-label">Model:</span>
+                      <span className="info-value">{printData.modelCode || ''}</span>
+                    </div>
+                    <div className="info-line">
+                      <span className="info-label">SN:</span>
+                      <span className="info-value">{printData.codeSN || ''}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-        
-      </div>
+              {/* 条形码区域 */}
+              <div className="barcode-section">
+                {printData.fjList && printData.fjList.map((_, index) => (
+                  <div key={index} className="barcode-item">
+                    <svg ref={(el) => { barcodeRefs.current[index] = el; }}></svg>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Spin>
     </Modal>
   );
 };

@@ -84,7 +84,7 @@ export function PrintPage() {
         templateSnCode: item.codeSn, // 使用codeSn作为模板SN码
         circuitBoardCode: item.materialCode, // 使用materialCode作为电路板编号
         accessories: `${item.accessoryCnt || 0}件`, // 附件数量
-        printStatus: item.printStatus === 0 ? 'pending' : item.printStatus === 1 ? 'printed' : 'completed' as 'pending' | 'printed' | 'completed',
+        printStatus: item.printStatus === 0 ? 'unprintedStatus' : item.printStatus === 1 ? 'partiallyPrinted' : 'printed' as 'unprintedStatus' | 'partiallyPrinted' | 'printed',
         printCount: (item.btPrintCnt || 0) + (item.nbzPrintCnt || 0) + (item.wbzPrintCnt || 0), // 总打印次数
         createTime: item.createTime ? new Date(parseInt(item.createTime)).toLocaleString() : '',
         remark: item.nameModel || '', // 使用nameModel作为备注
@@ -136,9 +136,7 @@ export function PrintPage() {
         deliveryDateEnd,
         templateSnCode: values.templateSnCode,
         materialCode: values.circuitBoardCode, // 映射到API的materialCode字段
-        printStatus: values.printStatus ? 
-          (values.printStatus === 'pending' ? 0 : values.printStatus === 'printed' ? 1 : 2) : 
-          undefined,
+        printStatus: values.printStatus !== undefined ? values.printStatus : undefined,
       };
 
       searchParamsRef.current = newSearchParams;
@@ -282,11 +280,11 @@ export function PrintPage() {
       dataIndex: 'printStatus',
       key: 'printStatus',
       width: 100,
-      render: (status: 'pending' | 'printed' | 'completed') => {
+      render: (status: 'unprintedStatus' | 'partiallyPrinted' | 'printed') => {
         const statusMap = {
-          pending: { color: 'orange', text: '待打印' },
-          printed: { color: 'blue', text: '已打印' },
-          completed: { color: 'green', text: '已完成' },
+          unprintedStatus: { color: 'default', text: '未打印' },
+          partiallyPrinted: { color: 'orange', text: '部份打印' },
+          printed: { color: 'green', text: '已打印' },
         };
         const config = statusMap[status];
         return <Tag color={config.color}>{config.text}</Tag>;
@@ -392,9 +390,9 @@ export function PrintPage() {
           
           <Form.Item label="打印状态" name="printStatus">
             <Select placeholder="全部" style={{ width: 120 }} allowClear>
-              <Option value="pending">待打印</Option>
-              <Option value="printed">已打印</Option>
-              <Option value="completed">已完成</Option>
+              <Option value={0}>未打印</Option>
+              <Option value={1}>部份打印</Option>
+              <Option value={2}>已打印</Option>
             </Select>
           </Form.Item>
           

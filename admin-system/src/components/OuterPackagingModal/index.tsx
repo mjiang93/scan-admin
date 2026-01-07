@@ -54,8 +54,8 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 
   // 当弹窗打开时自动调用接口获取数据
   useEffect(() => {
-    if (visible && record?.snCode) {
-      loadData(record.snCode);
+    if (visible && record?.codeSn) {
+      loadData(record.codeSn);
     } else if (!visible) {
       setOuterPackagingData(null);
     }
@@ -224,7 +224,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 
   // 生成二维码数据 - 使用接口返回的codeSN
   const generateQRData = () => {
-    return outerPackagingData?.codeSN || record.snCode || 'S0000012A001IP9302A01RG52PA01';
+    return outerPackagingData?.codeSN || record.codeSn || 'S0000012A001IP9302A01RG52PA01';
   };
 
   // 格式化日期
@@ -269,7 +269,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
                 <tr>
                   <td className="label-cell">物料编码</td>
                   <td className="value-cell" colSpan={2}>
-                    {outerPackagingData?.materialCode || record.circuitBoardCode || '0228A00179'}
+                    {outerPackagingData?.materialCode || record.materialCode || '0228A00179'}
                   </td>
                   <td className="qr-section" rowSpan={2}>
                     <div className="qr-code-container">
@@ -288,7 +288,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
                 <tr>
                   <td className="label-cell">名称型号</td>
                   <td className="value-cell multi-line" colSpan={2}>
-                    {outerPackagingData?.nameModel || record.remark || '系统电源-3相交流380V-无'}
+                    {outerPackagingData?.nameModel || record.nameModel || '系统电源-3相交流380V-无'}
                   </td>
                 </tr>
                 <tr>

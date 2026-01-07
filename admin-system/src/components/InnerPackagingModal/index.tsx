@@ -42,12 +42,12 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
 
   // 加载打印数据
   const loadPrintData = async () => {
-    if (!record?.snCode) return;
+    if (!record?.codeSn) return;
     
     setLoading(true);
     try {
       // 调用扫本体码接口获取内包装码打印信息
-      const detail = await scanBtcode(record.snCode);
+      const detail = await scanBtcode(record.codeSn);
       
       if (detail) {
         // 保存记录ID用于更新打印状态

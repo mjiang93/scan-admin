@@ -17,6 +17,7 @@ import {
 import dayjs from 'dayjs';
 import { updateBarcodeRecord } from '@/services/print';
 import type { BarcodeRecord, ApiBarcodeRecord } from '@/types/print';
+import { useUserStore } from '@/store';
 import './index.css';
 
 interface EditRecordModalProps {
@@ -34,31 +35,29 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const userInfo = useUserStore((state) => state.userInfo);
 
   // 当弹窗打开时，填充表单数据
   useEffect(() => {
     if (visible && record) {
-      // 将BarcodeRecord转换为表单数据
-      const formData = {
-        projectCode: record.projectCode,
-        productionDateStart: record.createTime ? dayjs(record.createTime) : null,
-        productionDateEnd: record.createTime ? dayjs(record.createTime) : null,
-        lineName: record.productionLine,
-        technicalVersion: record.techVersion,
-        nameModel: record.remark || '',
-        cnt: 100, // 默认数量
-        unit: 'PCS',
-        supplierCode: record.supplierCode,
-        factoryCode: record.factoryCode,
-        codeSn: record.snCode,
-        code09: record.code09,
-        materialCode: record.circuitBoardCode,
-        deliveryDate: record.deliveryDate ? dayjs(record.deliveryDate) : null,
-        accessoryCnt: parseInt(record.accessories?.replace('件', '') || '0'),
-        drawingVersion: 'A001', // 默认图纸版本
+      // 安全地转换日期（时间戳转dayjs）
+      const parseTimestamp = (timestamp: string | undefined | null) => {
+        if (!timestamp) return undefined;
+        try {
+          const date = dayjs(parseInt(timestamp));
+          return date.isValid() ? date : undefined;
+        } catch {
+          return undefined;
+        }
       };
-      
-      form.setFieldsValue(formData);
+
+      // 直接使用record，只处理特殊字段
+      form.setFieldsValue({
+        ...record,
+        productionDateStart: parseTimestamp(record.productionDateStart),
+        productionDateEnd: parseTimestamp(record.productionDateEnd),
+        deliveryDate: parseTimestamp(record.deliveryDate),
+      });
     }
   }, [visible, record, form]);
 
@@ -74,38 +73,22 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
       }
 
       // 获取当前用户信息
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      const operator = userInfo.username || 'admin';
+      const operator = userInfo?.userName || 'unknown';
 
-      // 构造API需要的数据格式
+      // 转换日期为时间戳
+      const formatDateToTimestamp = (date: any) => {
+        if (!date) return undefined;
+        return dayjs(date).valueOf().toString();
+      };
+
+      // 直接使用record的原始数据，只更新表单修改的字段
       const updateData: ApiBarcodeRecord & { operator: string } = {
+        ...values,
         id: record.id,
-        projectCode: values.projectCode,
-        productionDateStart: values.productionDateStart?.format('YYYY-MM-DD') || '',
-        productionDateEnd: values.productionDateEnd?.format('YYYY-MM-DD') || '',
-        lineName: values.lineName,
-        technicalVersion: values.technicalVersion,
-        nameModel: values.nameModel,
-        cnt: values.cnt,
-        unit: values.unit,
-        supplierCode: values.supplierCode,
-        factoryCode: values.factoryCode,
-        codeSn: values.codeSn,
-        code09: values.code09,
-        materialCode: values.materialCode,
-        deliveryDate: values.deliveryDate?.format('YYYY-MM-DD') || '',
-        accessoryCnt: values.accessoryCnt || 0,
-        drawingVersion: values.drawingVersion,
-        // 保持原有的其他字段
-        btPrintCnt: 0,
-        nbzPrintCnt: 0,
-        wbzPrintCnt: 0,
-        printStatus: 0,
-        createTime: record.createTime,
-        creator: operator,
-        modifier: operator,
-        modifiyTime: null,
-        operator: operator, // 添加操作人字段
+        productionDateStart: formatDateToTimestamp(values.productionDateStart),
+        productionDateEnd: formatDateToTimestamp(values.productionDateEnd),
+        deliveryDate: formatDateToTimestamp(values.deliveryDate),
+        operator: operator,
       };
 
       const response = await updateBarcodeRecord(updateData);
@@ -154,6 +137,28 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         layout="vertical"
         className="edit-record-form"
       >
+        {/* 第一行：产品编码、产品名称 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="产品编码"
+              name="productCode"
+              rules={[{ required: true, message: '请输入产品编码' }]}
+            >
+              <Input disabled className="disabled-input" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="产品名称"
+              name="productName"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* 第二行：项目编码、单据编码 */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -161,11 +166,66 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               name="projectCode"
               rules={[{ required: true, message: '请输入项目编码' }]}
             >
-              <Input disabled className="disabled-input" />
+              <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="生产日期" required>
+            <Form.Item
+              label="单据编码"
+              name="orderCode"
+              rules={[{ required: true, message: '请输入单据编码' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* 第三行：供应商代码、柜号 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="供应商代码"
+              name="supplierCode"
+              rules={[{ required: true, message: '请输入供应商代码' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="柜号"
+              name="model"
+            >
+              <Input placeholder="本体model" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* 第四行：客户物料编码、po行号 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="客户物料编码"
+              name="materialCode"
+              rules={[{ required: true, message: '请输入客户物料编码' }]}
+            >
+              <Input placeholder="PartNumber" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="po行号"
+              name="pohh"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* 第五行：生产日期 */}
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item label="生产日期">
               <Row gutter={8}>
                 <Col span={11}>
                   <Form.Item
@@ -182,7 +242,6 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
                 <Col span={11}>
                   <Form.Item
                     name="productionDateEnd"
-                    rules={[{ required: true, message: '请选择结束日期' }]}
                     style={{ margin: 0 }}
                   >
                     <DatePicker style={{ width: '100%' }} />
@@ -191,29 +250,10 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               </Row>
             </Form.Item>
           </Col>
+          
         </Row>
 
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              label="生产线"
-              name="lineName"
-              rules={[{ required: true, message: '请输入生产线' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              label="技术版本"
-              name="technicalVersion"
-              rules={[{ required: true, message: '请输入技术版本' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
+        {/* 第六行：名称型号 */}
         <Row gutter={16}>
           <Col span={24}>
             <Form.Item
@@ -226,6 +266,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
           </Col>
         </Row>
 
+        {/* 第七行：数量、单位 */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -247,79 +288,67 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
           </Col>
         </Row>
 
+        {/* 第八行：出厂码 */}
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              label="供货商代码"
-              name="supplierCode"
-              rules={[{ required: true, message: '请输入供货商代码' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
               label="出厂码"
               name="factoryCode"
-              rules={[{ required: true, message: '请输入出厂码' }]}
             >
               <Input />
             </Form.Item>
           </Col>
         </Row>
 
+        {/* 第九行：SN码 */}
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
               label="SN码"
               name="codeSn"
-              rules={[{ required: true, message: '请输入SN码' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              label="09码"
-              name="code09"
-              rules={[{ required: true, message: '请输入09码' }]}
             >
               <Input />
             </Form.Item>
           </Col>
         </Row>
 
+        {/* 第十行：09码 */}
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
-              label="物料编码"
-              name="materialCode"
-              rules={[{ required: true, message: '请输入物料编码' }]}
+              label="09码"
+              name="code09"
             >
               <Input />
             </Form.Item>
           </Col>
+        </Row>
+
+        {/* 第十一行：送货日期、图纸版本 */}
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="送货日期"
               name="deliveryDate"
-              rules={[{ required: true, message: '请选择送货日期' }]}
             >
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="图纸版本"
               name="drawingVersion"
-              rules={[{ required: true, message: '请输入图纸版本' }]}
+              rules={[
+                { len: 3, message: '图纸版本必须是3位字符' },
+              ]}
             >
-              <Input />
+              <Input maxLength={3} placeholder="请输入3位字符" />
             </Form.Item>
           </Col>
+        </Row>
+
+        {/* 第十二行：附件 */}
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="附件">
               <Row gutter={8}>

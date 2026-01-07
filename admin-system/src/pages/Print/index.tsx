@@ -12,7 +12,8 @@ import {
   Table, 
   Space, 
   message, 
-  Tag
+  Tag,
+  Popconfirm
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -20,14 +21,14 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { Dayjs } from 'dayjs';
-import { queryBarcodeRecords } from '@/services/print';
+import { queryBarcodeRecords, createCode } from '@/services/print';
 import type { BarcodeRecord, BarcodeQueryParams, ApiBarcodeRecord } from '@/types/print';
 import BarcodeModal from '@/components/BarcodeModal';
 import InnerPackagingModal from '@/components/InnerPackagingModal';
 import OuterPackagingModal from '@/components/OuterPackagingModal';
 import EditRecordModal from '@/components/EditRecordModal';
 import BatchAccessoryModal from '@/components/BatchAccessoryModal';
-import BatchDeliveryModal from '@/components/BatchDeliveryModal';
+import BatchDrawingVersionModal from '@/components/BatchDrawingVersionModal';
 import './index.css';
 
 const { RangePicker } = DatePicker;
@@ -50,7 +51,7 @@ export function PrintPage() {
   const [outerPackagingModalVisible, setOuterPackagingModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [batchAccessoryModalVisible, setBatchAccessoryModalVisible] = useState(false);
-  const [batchDeliveryModalVisible, setBatchDeliveryModalVisible] = useState(false);
+  const [batchDrawingVersionModalVisible, setBatchDrawingVersionModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<BarcodeRecord | null>(null);
   
   // 使用ref来存储搜索参数，避免依赖问题
@@ -68,26 +69,10 @@ export function PrintPage() {
       };
 
       const response = await queryBarcodeRecords(queryParams);
-      
-      // 转换数据格式，添加key字段，并映射字段名
+      // 直接使用API返回的数据，只添加key字段
       const records = response.data.result.map((item: ApiBarcodeRecord, index: number) => ({
         key: item.id || `${index}`,
-        id: item.id,
-        supplierCode: item.supplierCode, // 单据编号
-        projectCode: item.projectCode,
-        factoryCode: item.factoryCode,
-        productionLine: item.lineName, // API返回lineName，映射到productionLine
-        techVersion: item.technicalVersion, // API返回technicalVersion，映射到techVersion
-        snCode: item.codeSn, // API返回codeSn，映射到snCode
-        code09: item.code09,
-        deliveryDate: item.deliveryDate ? new Date(parseInt(item.deliveryDate)).toLocaleDateString() : '', // 时间戳转换
-        templateSnCode: item.codeSn, // 使用codeSn作为模板SN码
-        circuitBoardCode: item.materialCode, // 使用materialCode作为电路板编号
-        accessories: `${item.accessoryCnt || 0}件`, // 附件数量
-        printStatus: item.printStatus === 0 ? 'unprintedStatus' : item.printStatus === 1 ? 'partiallyPrinted' : 'printed' as 'unprintedStatus' | 'partiallyPrinted' | 'printed',
-        printCount: (item.btPrintCnt || 0) + (item.nbzPrintCnt || 0) + (item.wbzPrintCnt || 0), // 总打印次数
-        createTime: item.createTime ? new Date(parseInt(item.createTime)).toLocaleString() : '',
-        remark: item.nameModel || '', // 使用nameModel作为备注
+        ...item,
       }));
 
       setDataSource(records);
@@ -97,7 +82,6 @@ export function PrintPage() {
         total: response.data.total,
       });
     } catch (error) {
-      message.error('查询失败，请重试');
       console.error('查询失败:', error);
     } finally {
       setLoading(false);
@@ -125,17 +109,14 @@ export function PrintPage() {
       }
 
       const newSearchParams: Partial<BarcodeQueryParams> = {
-        supplierCode: values.supplierCode,
-        projectCode: values.projectCode,
-        factoryCode: values.factoryCode,
-        lineName: values.productionLine, // 映射到API的lineName字段
-        technicalVersion: values.techVersion, // 映射到API的technicalVersion字段
-        codeSn: values.snCode, // 映射到API的codeSn字段
-        code09: values.code09,
+        productCode: values.productCode, // 产品编号
+        orderCode: values.orderCode, // 单据编号
+        codeSn: values.codeSn, // SN码
+        code09: values.code09, // 09码
+        factoryCode: values.factoryCode, // 出厂编号
+        projectCode: values.projectCode, // 项目编码
         deliveryDateStart,
         deliveryDateEnd,
-        templateSnCode: values.templateSnCode,
-        materialCode: values.circuitBoardCode, // 映射到API的materialCode字段
         printStatus: values.printStatus !== undefined ? values.printStatus : undefined,
       };
 
@@ -172,14 +153,14 @@ export function PrintPage() {
     setBatchAccessoryModalVisible(true);
   }, [selectedRowKeys]);
 
-  // 批量导出标签
-  const handleBatchExport = useCallback(() => {
+  // 批量更新图纸版本
+  const handleBatchUpdateDrawingVersion = useCallback(() => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请选择要修改送货时间的记录');
+      message.warning('请选择要更新图纸版本的记录');
       return;
     }
     
-    setBatchDeliveryModalVisible(true);
+    setBatchDrawingVersionModalVisible(true);
   }, [selectedRowKeys]);
 
   // 本体操作
@@ -206,14 +187,55 @@ export function PrintPage() {
     setEditModalVisible(true);
   }, []);
 
+  // 生成操作
+  const handleGenerate = useCallback(async (record: BarcodeRecord) => {
+    try {
+      // 获取当前用户信息
+      const userInfo = localStorage.getItem('userInfo');
+      const operator = userInfo ? JSON.parse(userInfo).userId : '';
+      
+      if (!operator) {
+        message.error('未获取到用户信息');
+        return;
+      }
+
+      const response = await createCode({
+        id: String(record.id),
+        operator,
+      });
+
+      if (response.success) {
+        message.success('生成成功');
+        // 重新加载数据
+        loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
+      } else {
+        message.error(response.errorMsg || '生成失败');
+      }
+    } catch (error) {
+      console.error('生成失败:', error);
+    }
+  }, [loadData, pagination]);
+
   // 表格列配置
   const columns: ColumnsType<BarcodeRecord> = [
     {
-      title: '单据编号',
-      dataIndex: 'supplierCode',
-      key: 'supplierCode',
-      width: 120,
+      title: '产品编号',
+      dataIndex: 'productCode',
+      key: 'productCode',
+      width: 210,
       fixed: 'left',
+    },
+    {
+      title: '单据编号',
+      dataIndex: 'orderCode',
+      key: 'orderCode',
+      width: 200,
+    },
+    {
+      title: '产品名称',
+      dataIndex: 'productName',
+      key: 'productName',
+      width: 150,
     },
     {
       title: '项目编码',
@@ -222,33 +244,34 @@ export function PrintPage() {
       width: 120,
     },
     {
+      title: '供应商代码',
+      dataIndex: 'supplierCode',
+      key: 'supplierCode',
+      width: 150,
+    },
+    {
       title: '出厂码',
       dataIndex: 'factoryCode',
       key: 'factoryCode',
       width: 150,
     },
-    {
-      title: '生产线',
-      dataIndex: 'productionLine',
-      key: 'productionLine',
-      width: 80,
-    },
-    {
-      title: '技术版本',
-      dataIndex: 'techVersion',
-      key: 'techVersion',
-      width: 100,
-    },
+    
     {
       title: 'SN码',
-      dataIndex: 'snCode',
-      key: 'snCode',
-      width: 200,
+      dataIndex: 'codeSn',
+      key: 'codeSn',
+      width: 264,
     },
     {
       title: '09码',
       dataIndex: 'code09',
       key: 'code09',
+      width: 230,
+    },
+     {
+      title: '客户物料编码',
+      dataIndex: 'materialCode',
+      key: 'materialCode',
       width: 180,
     },
     {
@@ -256,23 +279,18 @@ export function PrintPage() {
       dataIndex: 'deliveryDate',
       key: 'deliveryDate',
       width: 120,
+      render: (date: string) => date ? new Date(parseInt(date)).toLocaleDateString() : '',
     },
     {
-      title: '模板SN码',
-      dataIndex: 'templateSnCode',
-      key: 'templateSnCode',
-      width: 120,
-    },
-    {
-      title: '电路板编号',
-      dataIndex: 'circuitBoardCode',
-      key: 'circuitBoardCode',
-      width: 120,
+      title: '图纸版本',
+      dataIndex: 'drawingVersion',
+      key: 'drawingVersion',
+      width: 100,
     },
     {
       title: '附件',
-      dataIndex: 'accessories',
-      key: 'accessories',
+      dataIndex: 'accessoryCnt',
+      key: 'accessoryCnt',
       width: 80,
     },
     {
@@ -280,20 +298,20 @@ export function PrintPage() {
       dataIndex: 'printStatus',
       key: 'printStatus',
       width: 100,
-      render: (status: 'unprintedStatus' | 'partiallyPrinted' | 'printed') => {
+      render: (status: number) => {
         const statusMap = {
-          unprintedStatus: { color: 'default', text: '未打印' },
-          partiallyPrinted: { color: 'orange', text: '部份打印' },
-          printed: { color: 'green', text: '已打印' },
+          0: { color: 'default', text: '未打印' },
+          1: { color: 'orange', text: '部份打印' },
+          2: { color: 'green', text: '已打印' },
         };
-        const config = statusMap[status];
+        const config = statusMap[status as 0 | 1 | 2] || statusMap[0];
         return <Tag color={config.color}>{config.text}</Tag>;
       },
     },
     {
       title: '操作',
       key: 'action',
-      width: 300,
+      width: 350,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -325,6 +343,20 @@ export function PrintPage() {
           >
             编辑
           </Button>
+          <Popconfirm
+            title="确认生成"
+            description="确定要生成SN码和09码吗？"
+            onConfirm={() => handleGenerate(record)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button 
+              type="link" 
+              size="small"
+            >
+              生成
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -345,7 +377,23 @@ export function PrintPage() {
           layout="inline"
           onFinish={handleSearch}
         >
-          <Form.Item label="单据编号" name="supplierCode">
+          <Form.Item label="产品编号" name="productCode">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
+          <Form.Item label="单据编号" name="orderCode">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
+          <Form.Item label="SN码" name="codeSn">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
+          <Form.Item label="09码" name="code09">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
+          <Form.Item label="出厂编号" name="factoryCode">
             <Input placeholder="请输入" style={{ width: 150 }} />
           </Form.Item>
           
@@ -353,39 +401,11 @@ export function PrintPage() {
             <Input placeholder="请输入" style={{ width: 150 }} />
           </Form.Item>
           
-          <Form.Item label="出厂码" name="factoryCode">
-            <Input placeholder="请输入" style={{ width: 150 }} />
-          </Form.Item>
-          
-          <Form.Item label="生产线" name="productionLine">
-            <Input placeholder="请输入" style={{ width: 120 }} />
-          </Form.Item>
-          
-          <Form.Item label="技术版本" name="techVersion">
-            <Input placeholder="请输入" style={{ width: 120 }} />
-          </Form.Item>
-          
-          <Form.Item label="SN码" name="snCode">
-            <Input placeholder="请输入" style={{ width: 200 }} />
-          </Form.Item>
-          
-          <Form.Item label="09码" name="code09">
-            <Input placeholder="请输入" style={{ width: 180 }} />
-          </Form.Item>
-          
           <Form.Item label="送货日期" name="deliveryDateRange">
             <RangePicker 
               style={{ width: 240 }} 
               placeholder={['开始日期', '结束日期']}
             />
-          </Form.Item>
-          
-          <Form.Item label="模板SN码" name="templateSnCode">
-            <Input placeholder="请输入" style={{ width: 150 }} />
-          </Form.Item>
-          
-          <Form.Item label="电路板编号" name="circuitBoardCode">
-            <Input placeholder="请输入" style={{ width: 150 }} />
           </Form.Item>
           
           <Form.Item label="打印状态" name="printStatus">
@@ -428,10 +448,10 @@ export function PrintPage() {
             批量添加附件
           </Button>
           <Button 
-            onClick={handleBatchExport}
+            onClick={handleBatchUpdateDrawingVersion}
             disabled={selectedRowKeys.length === 0}
           >
-            批量修改送货时间
+            批量更新图纸版本
           </Button>
         </Space>
         {selectedRowKeys.length > 0 && (
@@ -509,13 +529,13 @@ export function PrintPage() {
         }}
       />
 
-      {/* 批量修改送货时间弹窗 */}
-      <BatchDeliveryModal
-        visible={batchDeliveryModalVisible}
+      {/* 批量更新图纸版本弹窗 */}
+      <BatchDrawingVersionModal
+        visible={batchDrawingVersionModalVisible}
         selectedIds={selectedRowKeys}
-        onClose={() => setBatchDeliveryModalVisible(false)}
+        onClose={() => setBatchDrawingVersionModalVisible(false)}
         onSuccess={() => {
-          // 修改送货时间成功后重新加载数据并清空选择
+          // 更新图纸版本成功后重新加载数据并清空选择
           loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
           setSelectedRowKeys([]);
         }}

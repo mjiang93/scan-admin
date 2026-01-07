@@ -75,6 +75,24 @@
           "requestBody": "条码信息对象",
           "response": "返回结果«object»"
         },
+        "createcode": {
+          "path": "/pc/createcode",
+          "method": "POST",
+          "summary": "生成SN码和09码",
+          "params": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "主键"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作者ID"
+            }
+          },
+          "response": "返回结果«object»"
+        },
         "btprint": {
           "path": "/pc/btprint",
           "method": "POST",
@@ -177,6 +195,33 @@
               "format": "int32",
               "required": true,
               "description": "附件数量"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
+          },
+          "response": "返回结果«object»"
+        },
+        "editdvs": {
+          "path": "/pc/editdvs",
+          "method": "POST",
+          "summary": "批量修改图纸版本",
+          "requestBody": {
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "required": true,
+              "description": "主键集合"
+            },
+            "drawingVersion": {
+              "type": "string",
+              "required": true,
+              "description": "图纸版本"
             },
             "operator": {
               "type": "string",

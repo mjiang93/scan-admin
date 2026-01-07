@@ -33,12 +33,14 @@ export async function queryBarcodeRecords(params: Partial<BarcodeQueryParams>): 
     ...params,
   };
 
-  // 如果有日期范围，转换为ISO格式
+  // 如果有日期范围，转换为年月日格式 (YYYY-MM-DD)
   if (params.deliveryDateStart) {
-    requestParams.deliveryDateStart = new Date(params.deliveryDateStart).toISOString();
+    const date = new Date(params.deliveryDateStart);
+    requestParams.deliveryDateStart = date.toISOString().split('T')[0];
   }
   if (params.deliveryDateEnd) {
-    requestParams.deliveryDateEnd = new Date(params.deliveryDateEnd).toISOString();
+    const date = new Date(params.deliveryDateEnd);
+    requestParams.deliveryDateEnd = date.toISOString().split('T')[0];
   }
 
   try {
@@ -93,6 +95,39 @@ export async function batchEditDeliveryDate(params: {
     return response;
   } catch (error) {
     console.error('批量修改送货时间失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 批量更新图纸版本
+ */
+export async function batchEditDrawingVersion(params: {
+  ids: number[];
+  drawingVersion: string;
+  operator: string;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/editdvs', params);
+    return response;
+  } catch (error) {
+    console.error('批量更新图纸版本失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 生成SN码和09码
+ */
+export async function createCode(params: {
+  id: string;
+  operator: string;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/createcode', null, { params });
+    return response;
+  } catch (error) {
+    console.error('生成SN码和09码失败:', error);
     throw error;
   }
 }

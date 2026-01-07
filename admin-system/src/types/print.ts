@@ -3,43 +3,55 @@
  */
 
 /**
- * 条码记录数据
+ * 条码记录数据 - 直接使用API返回的字段
  */
 export interface BarcodeRecord {
   key: string;
   id: string;
-  supplierCode: string; // 单据编号
-  projectCode: string;
-  factoryCode: string;
-  productionLine: string;
-  techVersion: string;
-  snCode: string;
+  accessoryCnt: number;
+  btPrintCnt: number;
+  cnt: string;
   code09: string;
-  deliveryDate: string;
-  templateSnCode: string;
-  circuitBoardCode: string;
-  accessories: string;
-  printStatus: 'unprintedStatus' | 'partiallyPrinted' | 'printed';
-  printCount: number;
+  codeSn: string;
   createTime: string;
-  remark?: string;
+  creator: string;
+  deliveryDate: string;
+  drawingVersion: string;
+  factoryCode: string;
+  lineName: string;
+  materialCode: string;
+  model: string;
+  modifier: string;
+  modifiyTime: string | null;
+  nameModel: string;
+  nbzPrintCnt: number;
+  orderCode: string;
+  pohh: string;
+  printStatus: number;
+  productCode: string;
+  productName: string;
+  productionDateEnd: string;
+  productionDateStart: string;
+  projectCode: string;
+  supplierCode: string;
+  technicalVersion: string;
+  unit: string;
+  wbzPrintCnt: number;
+  operator?: string;
 }
 
 /**
  * 查询参数
  */
 export interface BarcodeQueryParams {
-  supplierCode?: string; // 单据编号
-  projectCode?: string;
-  factoryCode?: string;
-  lineName?: string; // API使用lineName而不是productionLine
-  technicalVersion?: string; // API使用technicalVersion而不是techVersion
-  codeSn?: string; // API使用codeSn而不是snCode
-  code09?: string;
+  productCode?: string; // 产品编号
+  orderCode?: string; // 单据编号
+  codeSn?: string; // SN码
+  code09?: string; // 09码
+  factoryCode?: string; // 出厂编号
+  projectCode?: string; // 项目编码
   deliveryDateStart?: string;
   deliveryDateEnd?: string;
-  templateSnCode?: string;
-  materialCode?: string; // API使用materialCode而不是circuitBoardCode
   printStatus?: number; // 0-未打印 1-部份打印 2-已打印
   page: number;
   size: number;
@@ -81,7 +93,7 @@ export interface PrintApiResponse<T = unknown> {
 export interface ApiBarcodeRecord {
   accessoryCnt: number;
   btPrintCnt: number;
-  cnt: number;
+  cnt: string;
   code09: string;
   codeSn: string;
   createTime: string;
@@ -92,11 +104,16 @@ export interface ApiBarcodeRecord {
   id: string;
   lineName: string;
   materialCode: string;
+  model: string; // 型号
   modifier: string;
   modifiyTime: string | null;
   nameModel: string;
   nbzPrintCnt: number;
+  orderCode: string; // 订单编号
+  pohh: string; // 配货号
   printStatus: number;
+  productCode: string; // 产品编号
+  productName: string; // 产品名称
   productionDateEnd: string;
   productionDateStart: string;
   projectCode: string;

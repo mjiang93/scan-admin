@@ -1,7 +1,7 @@
 /**
  * 用户管理相关API服务
  */
-import { post } from '@/utils/request';
+import { post, get } from '@/utils/request';
 
 // 用户数据类型
 export interface UserRecord {
@@ -63,6 +63,7 @@ export interface UserRegisterRequest {
   password: string;
   userId: string; // 用户ID
   userName: string; // 用户名称
+  status: number; // 状态：0-正常，1-冻结
 }
 
 // 用户编辑请求参数类型
@@ -72,6 +73,14 @@ export interface UserEditRequest {
   password?: string;
   userId: string;
   userName: string;
+  status: number; // 状态：0-正常，1-冻结
+}
+
+// 用户状态修改请求参数类型
+export interface UserEditStatusRequest {
+  userId: string; // 用户ID
+  status: string; // 状态：0-正常，1-冻结
+  operator: string; // 操作者ID
 }
 
 /**
@@ -165,8 +174,9 @@ export async function createUser(data: UserFormData): Promise<void> {
   const registerRequest: UserRegisterRequest = {
     operator: operator,
     password: data.password || '',
-    userId: data.userId, // 使用userId字段
-    userName: data.userName, // 使用userName字段
+    userId: data.userId,
+    userName: data.userName,
+    status: data.status !== undefined ? data.status : 0, // 默认正常状态
   };
 
   console.log('创建用户请求参数:', registerRequest);
@@ -183,7 +193,6 @@ export async function createUser(data: UserFormData): Promise<void> {
   console.log('创建用户响应:', response);
 
   if (response && response.success && response.code === 0) {
-    // 成功时不需要返回数据，只需要确认操作成功
     return;
   }
   
@@ -213,6 +222,7 @@ export async function updateUser(id: string, data: Partial<UserFormData>): Promi
     operator: operator,
     userId: data.userId || '',
     userName: data.userName || '',
+    status: data.status !== undefined ? data.status : 0,
   };
 
   // 如果提供了密码，则包含密码字段
@@ -234,11 +244,53 @@ export async function updateUser(id: string, data: Partial<UserFormData>): Promi
   console.log('编辑用户响应:', response);
 
   if (response && response.success && response.code === 0) {
-    // 成功时不需要返回数据，只需要确认操作成功
     return;
   }
   
   throw new Error(response?.errorMsg || response?.msg || '更新用户失败');
+}
+
+/**
+ * 修改用户状态
+ */
+export async function updateUserStatus(userId: string, status: number, operator?: string): Promise<void> {
+  // 获取当前登录用户ID作为operator
+  let op = operator || "登录的userId";
+  
+  if (!operator) {
+    try {
+      const cachedLoginData = localStorage.getItem('loginData');
+      if (cachedLoginData) {
+        const loginData = JSON.parse(cachedLoginData);
+        op = loginData.userId || "登录的userId";
+      }
+    } catch (error) {
+      console.error('获取登录用户信息失败:', error);
+    }
+  }
+
+  console.log('修改用户状态请求参数:', { userId, status: String(status), operator: op });
+
+  // 使用GET请求调用状态修改接口
+  const response = await get<{
+    code: number;
+    data: unknown;
+    errorMsg: string;
+    msg: string;
+    success: boolean;
+  }>('/user/editstatus', {
+    userId,
+    status: String(status),
+    operator: op
+  });
+
+  console.log('修改用户状态响应:', response);
+
+  if (response && response.success && response.code === 0) {
+    return;
+  }
+  
+  throw new Error(response?.errorMsg || response?.msg || '修改用户状态失败');
 }
 
 /**

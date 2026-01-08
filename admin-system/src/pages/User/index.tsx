@@ -74,6 +74,10 @@ export default function UserManage() {
       console.log('点击添加用户按钮');
       setEditingUser(null);
       form.resetFields();
+      // 设置默认状态为正常
+      form.setFieldsValue({
+        status: 0
+      });
       setModalOpen(true);
       console.log('添加用户弹窗已打开');
     } catch (error) {
@@ -104,13 +108,14 @@ export default function UserManage() {
       setSubmitting(true);
       const values = await form.validateFields();
       console.log('表单验证通过，数据:', values);
+      console.log('status 字段值:', values.status, '类型:', typeof values.status);
       
       if (editingUser) {
         // 编辑用户逻辑
         const formData: UserFormData = {
           userId: values.userId,
           userName: values.userName,
-          status: values.status !== undefined ? values.status : 0,
+          status: values.status ?? 0,
         };
         if (values.password) {
           formData.password = values.password;
@@ -123,7 +128,7 @@ export default function UserManage() {
           userId: values.userId,
           userName: values.userName,
           password: values.password,
-          status: values.status !== undefined ? values.status : 0,
+          status: values.status ?? 0,
         };
         console.log('创建用户数据:', formData);
         await handleCreate(formData);

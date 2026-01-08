@@ -117,6 +117,22 @@ export async function batchEditDrawingVersion(params: {
 }
 
 /**
+ * 同步ERP系统
+ */
+export async function syncErpSystem(params: {
+  projectCode: string;
+  operator: string;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pda/scanpcode', params);
+    return response;
+  } catch (error) {
+    console.error('同步ERP系统失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 生成SN码和09码
  */
 export async function createCode(params: {

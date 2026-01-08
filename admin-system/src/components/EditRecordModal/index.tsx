@@ -207,9 +207,12 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
             <Form.Item
               label="客户物料编码"
               name="materialCode"
-              rules={[{ required: true, message: '请输入客户物料编码' }]}
+              rules={[
+                { required: true, message: '请输入客户物料编码' },
+                { min: 8, max: 17, message: '客户物料编码必须是8-17位字符' }
+              ]}
             >
-              <Input placeholder="PartNumber" />
+              <Input placeholder="PartNumber" maxLength={17} />
             </Form.Item>
           </Col>
           <Col span={12}>

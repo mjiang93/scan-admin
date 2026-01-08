@@ -29,6 +29,7 @@ import OuterPackagingModal from '@/components/OuterPackagingModal';
 import EditRecordModal from '@/components/EditRecordModal';
 import BatchAccessoryModal from '@/components/BatchAccessoryModal';
 import BatchDrawingVersionModal from '@/components/BatchDrawingVersionModal';
+import SyncErpModal from '@/components/SyncErpModal';
 import './index.css';
 
 const { RangePicker } = DatePicker;
@@ -52,6 +53,7 @@ export function PrintPage() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [batchAccessoryModalVisible, setBatchAccessoryModalVisible] = useState(false);
   const [batchDrawingVersionModalVisible, setBatchDrawingVersionModalVisible] = useState(false);
+  const [syncErpModalVisible, setSyncErpModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<BarcodeRecord | null>(null);
   
   // 使用ref来存储搜索参数，避免依赖问题
@@ -162,6 +164,11 @@ export function PrintPage() {
     
     setBatchDrawingVersionModalVisible(true);
   }, [selectedRowKeys]);
+
+  // 同步ERP系统
+  const handleSyncErp = useCallback(() => {
+    setSyncErpModalVisible(true);
+  }, []);
 
   // 本体操作
   const handleBodyOperation = useCallback((record: BarcodeRecord) => {
@@ -453,6 +460,11 @@ export function PrintPage() {
           >
             批量更新图纸版本
           </Button>
+          <Button 
+            onClick={handleSyncErp}
+          >
+            同步
+          </Button>
         </Space>
         {selectedRowKeys.length > 0 && (
           <span style={{ marginLeft: 16, color: '#666' }}>
@@ -538,6 +550,16 @@ export function PrintPage() {
           // 更新图纸版本成功后重新加载数据并清空选择
           loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
           setSelectedRowKeys([]);
+        }}
+      />
+
+      {/* 同步ERP系统弹窗 */}
+      <SyncErpModal
+        visible={syncErpModalVisible}
+        onClose={() => setSyncErpModalVisible(false)}
+        onSuccess={() => {
+          // 同步成功后重新加载数据
+          loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
         }}
       />
     </div>

@@ -1,0 +1,66 @@
+.particle-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.2) 0%, transparent 60%),
+    linear-gradient(135deg, 
+      #0f172a 0%, 
+      #1e293b 25%, 
+      #0f172a 50%, 
+      #1e3a5f 75%, 
+      #0f172a 100%
+    );
+  background-size: 100% 100%, 100% 100%, 100% 100%, 200% 200%;
+  animation: gradientShift 15s ease infinite, colorPulse 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 0%, 100% 100%, 50% 50%, 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%, 0% 100%, 30% 70%, 50% 50%;
+  }
+  50% {
+    background-position: 100% 100%, 0% 0%, 70% 30%, 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%, 100% 0%, 50% 50%, 50% 50%;
+  }
+  100% {
+    background-position: 0% 0%, 100% 100%, 50% 50%, 0% 0%;
+  }
+}
+
+@keyframes colorPulse {
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(1.1) saturate(1.2);
+  }
+}

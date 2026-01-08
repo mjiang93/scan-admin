@@ -1,7 +1,312 @@
+/* 登录容器 */
 .login-container {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow: hidden;
+}
+
+/* 登录卡片容器 */
+.login-card-wrapper {
+  position: relative;
+  z-index: 10;
+  animation: cardFadeIn 0.8s ease-out;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 登录头部 - 扫码图标和标题 */
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+  animation: headerSlideDown 0.6s ease-out 0.2s both;
+}
+
+@keyframes headerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.barcode-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.barcode-icon:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.barcode-icon svg {
+  font-size: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.system-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.9));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  letter-spacing: 2px;
+}
+
+.system-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* 玻璃态卡片样式 */
+.login-card {
+  width: 420px;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 20px !important;
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  overflow: visible;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.login-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 16px 48px rgba(31, 38, 135, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 移除默认的卡片头部 */
+.login-card :global(.ant-card-head) {
+  display: none;
+}
+
+/* 卡片内容区域 */
+.login-card :global(.ant-card-body) {
+  padding: 40px 32px 32px;
+}
+
+/* 表单项样式 */
+.login-card :global(.ant-form-item) {
+  margin-bottom: 24px;
+}
+
+/* 输入框样式增强 */
+.login-card :global(.ant-input),
+.login-card :global(.ant-input-password) {
+  height: 52px;
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 15px;
+}
+
+.login-card :global(.ant-input:hover),
+.login-card :global(.ant-input-affix-wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.5);
+  background: #fff;
+}
+
+.login-card :global(.ant-input:focus),
+.login-card :global(.ant-input-password:focus),
+.login-card :global(.ant-input-affix-wrapper-focused) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+.login-card :global(.ant-input-affix-wrapper) {
+  height: 52px;
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 输入框前缀图标 */
+.login-card :global(.ant-input-prefix) {
+  color: #667eea;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+/* 登录按钮样式 */
+.login-card :global(.ant-btn-primary) {
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card :global(.ant-btn-primary::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.login-card :global(.ant-btn-primary:hover) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #7c8ff0 0%, #8659b0 100%);
+}
+
+.login-card :global(.ant-btn-primary:hover::before) {
+  left: 100%;
+}
+
+.login-card :global(.ant-btn-primary:active) {
+  transform: translateY(-1px);
+}
+
+/* 加载状态 */
+.login-card :global(.ant-btn-loading) {
+  opacity: 0.85;
+}
+
+/* 条码装饰元素 */
+.barcode-decoration {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+.barcode-lines {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+  opacity: 0.3;
+}
+
+.barcode-lines span {
+  display: inline-block;
+  width: 3px;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  border-radius: 2px;
+  animation: barcodeAnimation 2s ease-in-out infinite;
+}
+
+.barcode-lines span:nth-child(1) { height: 30px; animation-delay: 0s; }
+.barcode-lines span:nth-child(2) { height: 35px; animation-delay: 0.1s; }
+.barcode-lines span:nth-child(3) { height: 25px; animation-delay: 0.2s; }
+.barcode-lines span:nth-child(4) { height: 40px; animation-delay: 0.3s; }
+.barcode-lines span:nth-child(5) { height: 28px; animation-delay: 0.4s; }
+.barcode-lines span:nth-child(6) { height: 32px; animation-delay: 0.5s; }
+.barcode-lines span:nth-child(7) { height: 38px; animation-delay: 0.6s; }
+.barcode-lines span:nth-child(8) { height: 26px; animation-delay: 0.7s; }
+.barcode-lines span:nth-child(9) { height: 34px; animation-delay: 0.8s; }
+.barcode-lines span:nth-child(10) { height: 30px; animation-delay: 0.9s; }
+.barcode-lines span:nth-child(11) { height: 36px; animation-delay: 1s; }
+.barcode-lines span:nth-child(12) { height: 28px; animation-delay: 1.1s; }
+.barcode-lines span:nth-child(13) { height: 32px; animation-delay: 1.2s; }
+.barcode-lines span:nth-child(14) { height: 38px; animation-delay: 1.3s; }
+.barcode-lines span:nth-child(15) { height: 30px; animation-delay: 1.4s; }
+
+@keyframes barcodeAnimation {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scaleY(1.1);
+  }
+}
+
+/* 表单验证错误样式 */
+.login-card :global(.ant-form-item-has-error .ant-input),
+.login-card :global(.ant-form-item-has-error .ant-input-affix-wrapper) {
+  border-color: #ff4d4f;
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.login-card :global(.ant-form-item-explain-error) {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .login-card {
+    width: 90%;
+    max-width: 380px;
+  }
+  
+  .login-card :global(.ant-card-body) {
+    padding: 32px 24px 24px;
+  }
+  
+  .system-title {
+    font-size: 26px;
+  }
+  
+  .barcode-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .barcode-icon svg {
+    font-size: 35px;
+  }
 }

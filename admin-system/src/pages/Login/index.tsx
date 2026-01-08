@@ -1,16 +1,12 @@
-/**
- * 登录页面
- */
 import { useState } from 'react';
 import { Form, Input, Button, Card, App } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { UserOutlined, LockOutlined, ScanOutlined } from '@ant-design/icons';
 import { login } from '@/services/auth';
 import type { LoginParams } from '@/types';
+import ParticleBackground from '@/components/ParticleBackground';
 import './index.css';
 
 export default function Login() {
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { message } = App.useApp();
@@ -39,31 +35,56 @@ export default function Login() {
   
   return (
     <div className="login-container">
-      <Card title="用户登录" style={{ width: 400 }}>
-        <Form 
-          form={form} 
-          onFinish={handleSubmit}
-          initialValues={{ userId: 'capo001', password: '123456' }}
-        >
-          <Form.Item
-            name="userId"
-            rules={[{ required: true, message: '请输入用户ID' }]}
+      <ParticleBackground />
+      <div className="login-card-wrapper">
+        <div className="login-header">
+          <div className="barcode-icon">
+            <ScanOutlined />
+          </div>
+          <h1 className="system-title">扫码管理系统</h1>
+          <p className="system-subtitle">Barcode Management System</p>
+        </div>
+        <Card className="login-card">
+          <Form 
+            form={form} 
+            onFinish={handleSubmit}
+            initialValues={{ userId: 'capo001', password: '123456' }}
           >
-            <Input prefix={<UserOutlined />} placeholder="用户ID" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: '请输入密码' }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="密码" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block loading={loading}>
-              登录
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+            <Form.Item
+              name="userId"
+              rules={[{ required: true, message: '请输入用户ID' }]}
+            >
+              <Input 
+                prefix={<UserOutlined />} 
+                placeholder="请输入用户ID"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: '请输入密码' }]}
+            >
+              <Input.Password 
+                prefix={<LockOutlined />} 
+                placeholder="请输入密码"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block loading={loading}>
+                {loading ? '登录中...' : '登录系统'}
+              </Button>
+            </Form.Item>
+          </Form>
+          <div className="barcode-decoration">
+            <div className="barcode-lines">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

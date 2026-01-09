@@ -322,7 +322,9 @@ const InnerPackagingModal: React.FC<InnerPackagingModalProps> = ({
             await updatePrintStatus({
               id: parseInt(recordId),
               operator: userInfo?.username || 'unknown',
-              nbzPrintCnt: 1
+              nbzPrintCnt: 1,
+              wbzPrintCnt: 0,
+              btPrintCnt: 0,
             });
             message.success('打印任务已发送');
           } catch (error) {

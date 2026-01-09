@@ -6,7 +6,9 @@ import { Modal, Button, Space, message } from 'antd';
 import { PrinterOutlined } from '@ant-design/icons';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord } from '@/types/print';
-import { scanNbzcode } from '@/services/print';
+import { scanNbzcode, updatePrintStatus } from '@/services/print';
+import { getStorage } from '@/utils/storage';
+import { formatDate } from '@/utils/format';
 import './index.css';
 
 interface OuterPackagingModalProps {
@@ -43,6 +45,8 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     setLoading(true);
     try {
       const data = await scanNbzcode(code);
+      console.log('外包装数据:', data);
+      console.log('送货日期:', data.deliveryDate);
       setOuterPackagingData(data);
     } catch (error) {
       console.error('获取外包装信息失败:', error);
@@ -64,13 +68,14 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
   if (!record) return null;
 
   // 处理打印操作
-  const handlePrint = () => {
+  const handlePrint = async () => {
     console.log('打印外包装标签:', outerPackagingData || record);
     
     // 获取打印内容（只获取标签容器）
     const printContent = document.querySelector('.delivery-label-container');
     if (!printContent) {
       console.error('未找到打印内容');
+      message.error('未找到打印内容');
       return;
     }
 
@@ -78,6 +83,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       console.error('无法打开打印窗口');
+      message.error('无法打开打印窗口');
       return;
     }
 
@@ -215,9 +221,28 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     
     // 等待内容加载完成后打印
     printWindow.onload = () => {
-      setTimeout(() => {
+      setTimeout(async () => {
         printWindow.print();
         printWindow.close();
+        
+        // 打印成功后调用接口更新打印状态
+        try {
+          const userInfo = getStorage<{ userName: string }>('userInfo');
+          const operator = userInfo?.userName || 'unknown';
+          
+          await updatePrintStatus({
+            id: parseInt(record.id),
+            operator,
+            btPrintCnt: 0,
+            nbzPrintCnt: 0,
+            wbzPrintCnt: 1,
+          });
+          
+          message.success('打印成功');
+        } catch (error) {
+          console.error('更新打印状态失败:', error);
+          message.warning('打印完成，但更新打印状态失败');
+        }
       }, 250);
     };
   };
@@ -225,17 +250,6 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
   // 生成二维码数据 - 使用接口返回的codeSN
   const generateQRData = () => {
     return outerPackagingData?.codeSN || record.codeSn || 'S0000012A001IP9302A01RG52PA01';
-  };
-
-  // 格式化日期
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('zh-CN');
-    } catch {
-      return dateStr;
-    }
   };
 
   return (
@@ -293,32 +307,32 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
                 </tr>
                 <tr>
                   <td className="label-cell">数量</td>
-                  <td className="value-cell">{outerPackagingData?.cnt || 100}</td>
+                  <td className="value-cell">{outerPackagingData?.cnt || '-'}</td>
                   <td className="label-cell">单位</td>
-                  <td className="value-cell">{outerPackagingData?.unit || 'PCS'}</td>
+                  <td className="value-cell">{outerPackagingData?.unit || '-'}</td>
                 </tr>
                 <tr>
                   <td className="label-cell">供应商代码</td>
                   <td className="value-cell">
-                    {outerPackagingData?.supplierCode || 'Bxxxxxx'}
+                    {outerPackagingData?.supplierCode || record.supplierCode || '-'}
                   </td>
                   <td className="label-cell">送货日期</td>
                   <td className="value-cell">
-                    {outerPackagingData ? formatDate(outerPackagingData.deliveryDate) : (record.deliveryDate || '2024-09-01')}
+                    {formatDate(outerPackagingData?.deliveryDate || record.deliveryDate, 'YYYY-MM-DD') || '2024-09-01'}
                   </td>
                 </tr>
                 <tr>
                   <td className="label-cell">PO/行号</td>
                   <td className="value-cell">
-                    {outerPackagingData?.poNo || 'PO620120240819000316'}
+                    {outerPackagingData?.poNo || '-'}
                   </td>
                   <td className="label-cell">送货单号</td>
-                  <td className="value-cell">{outerPackagingData?.deliveryNo || ''}</td>
+                  <td className="value-cell">{outerPackagingData?.deliveryNo || '-'}</td>
                 </tr>
                 <tr>
                   <td className="label-cell">批号</td>
                   <td className="value-cell" colSpan={3}>
-                    {outerPackagingData?.code09 || 'XXXXXXXXXXXXXXX'}
+                    {outerPackagingData?.code09 || '-'}
                   </td>
                 </tr>
                 <tr>

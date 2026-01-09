@@ -235,6 +235,8 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
           id: parseInt(record.id),
           operator,
           btPrintCnt: 1,
+          nbzPrintCnt: 0,
+          wbzPrintCnt: 0,
         });
         
         message.success('打印任务已发送');

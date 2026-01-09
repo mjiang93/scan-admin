@@ -381,7 +381,7 @@ export default function UserManage() {
             rules={[{ required: true, message: '请选择状态' }]}
             initialValue={0}
           >
-            <Select placeholder="请选择状态">
+            <Select placeholder="请选择状态" disabled={!editingUser}>
               <Option value={0}>正常</Option>
               <Option value={1}>禁用</Option>
             </Select>

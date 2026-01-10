@@ -55,6 +55,40 @@
           },
           "response": "返回结果«分页对象«条码信息»»"
         },
+        "export": {
+          "path": "/pc/export",
+          "method": "POST",
+          "summary": "导出条码信息Excel",
+          "requestBody": {
+            "page": {
+              "type": "integer",
+              "description": "起始页"
+            },
+            "size": {
+              "type": "integer",
+              "description": "分页大小"
+            },
+            "deliveryDateStart": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期开始"
+            },
+            "deliveryDateEnd": {
+              "type": "string",
+              "format": "date-time",
+              "description": "送货日期结束"
+            },
+            "offset": {
+              "type": "integer",
+              "description": "偏移量"
+            },
+            "traceId": {
+              "type": "string",
+              "description": "事件号"
+            }
+          },
+          "response": "Excel文件下载"
+        },
         "detail": {
           "path": "/pc/detail",
           "method": "GET",
@@ -548,6 +582,248 @@
           },
           "response": "返回结果«object»"
         }
+      }
+    }
+  },
+  "requestModels": {
+    "条码查询": {
+      "page": {
+        "type": "integer",
+        "description": "起始页"
+      },
+      "size": {
+        "type": "integer",
+        "description": "分页大小"
+      },
+      "deliveryDateStart": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期开始"
+      },
+      "deliveryDateEnd": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期结束"
+      },
+      "offset": {
+        "type": "integer",
+        "description": "偏移量"
+      },
+      "traceId": {
+        "type": "string",
+        "description": "事件号"
+      }
+    },
+    "PDA端条码查询": {
+      "page": {
+        "type": "integer",
+        "description": "起始页"
+      },
+      "size": {
+        "type": "integer",
+        "description": "分页大小"
+      },
+      "deliveryDateStart": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期开始"
+      },
+      "deliveryDateEnd": {
+        "type": "string",
+        "format": "date-time",
+        "description": "送货日期结束"
+      },
+      "offset": {
+        "type": "integer",
+        "description": "偏移量"
+      },
+      "traceId": {
+        "type": "string",
+        "description": "事件号"
+      }
+    },
+    "扫描产品编码信息": {
+      "projectCode": {
+        "type": "string",
+        "required": true,
+        "description": "产品编码"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      }
+    },
+    "扫描出厂码绑定条码信息": {
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "required": true,
+        "description": "条码信息主键ID"
+      },
+      "factoryCode": {
+        "type": "string",
+        "required": true,
+        "description": "出厂码"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      }
+    },
+    "条码打印请求参数": {
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "required": true,
+        "description": "主键"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      },
+      "btPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "required": true,
+        "description": "本体码打印状态 1-打印"
+      },
+      "nbzPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "required": true,
+        "description": "内包装码打印状态 1-打印"
+      },
+      "wbzPrintCnt": {
+        "type": "integer",
+        "format": "int32",
+        "required": true,
+        "description": "送货外包装码打印 1-打印"
+      }
+    },
+    "批量更新送货日期信息请求参数": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true,
+        "description": "主键集合"
+      },
+      "deliveryDate": {
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "description": "送货日期"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      }
+    },
+    "批量更新附件信息请求参数": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true,
+        "description": "主键集合"
+      },
+      "accessoryCnt": {
+        "type": "integer",
+        "format": "int32",
+        "required": true,
+        "description": "附件数量"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      }
+    },
+    "批量更新图纸版本": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true,
+        "description": "主键集合"
+      },
+      "drawingVersion": {
+        "type": "string",
+        "required": true,
+        "description": "图纸版本"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      }
+    },
+    "用户登录请求信息": {
+      "userId": {
+        "type": "string",
+        "required": true,
+        "description": "用户ID"
+      },
+      "password": {
+        "type": "string",
+        "required": true,
+        "description": "密码"
+      }
+    },
+    "用户用户请求": {
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "required": true,
+        "description": "主键"
+      },
+      "userId": {
+        "type": "string",
+        "required": true,
+        "description": "用户ID"
+      },
+      "userName": {
+        "type": "string",
+        "required": true,
+        "description": "用户姓名"
+      },
+      "password": {
+        "type": "string",
+        "description": "密码"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作者ID"
+      }
+    },
+    "用户查询": {
+      "page": {
+        "type": "integer",
+        "description": "起始页"
+      },
+      "size": {
+        "type": "integer",
+        "description": "分页大小"
+      },
+      "offset": {
+        "type": "integer",
+        "description": "偏移量"
+      },
+      "traceId": {
+        "type": "string",
+        "description": "事件号"
+      }
       }
     }
   },

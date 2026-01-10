@@ -46,7 +46,8 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     try {
       const data = await scanNbzcode(code);
       console.log('外包装数据:', data);
-      console.log('送货日期:', data.deliveryDate);
+      console.log('送货日期原始值:', data.deliveryDate);
+      console.log('送货日期类型:', typeof data.deliveryDate);
       setOuterPackagingData(data);
     } catch (error) {
       console.error('获取外包装信息失败:', error);
@@ -72,7 +73,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
     console.log('打印外包装标签:', outerPackagingData || record);
     
     // 获取打印内容（只获取标签容器）
-    const printContent = document.querySelector('.delivery-label-container');
+    const printContent = document.querySelector('.outer-packaging-delivery-label-container');
     if (!printContent) {
       console.error('未找到打印内容');
       message.error('未找到打印内容');
@@ -102,7 +103,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
             }
             
             @page {
-              size: auto;
+              size: 100mm 70mm;
               margin: 0;
             }
             
@@ -112,98 +113,98 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
             }
             
             body {
-              padding: 10mm;
+              padding: 3mm;
             }
             
-            .delivery-label-container {
-              border: 2px solid #333;
-              padding: 16px;
+            .outer-packaging-delivery-label-container {
               background: #fff;
               position: relative;
+              width: 94mm;
+              height: 64mm;
             }
             
-            .label-header {
-              text-align: center;
-              margin-bottom: 16px;
-              border-bottom: 1px solid #333;
-              padding-bottom: 8px;
-            }
-            
-            .label-header h3 {
-              margin: 0;
-              font-size: 16px;
-              font-weight: bold;
-            }
-            
-            .delivery-table {
+            .outer-packaging-delivery-table {
               width: 100%;
               border-collapse: collapse;
-              font-size: 14px;
+              font-size: 12px;
+              border: 2px solid #333;
             }
             
-            .delivery-table td {
+            .outer-packaging-table-header {
               border: 1px solid #333;
-              padding: 8px 12px;
-              vertical-align: middle;
-              height: 40px;
+              padding: 6px;
+              text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              background-color: #fff;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             
-            .label-cell {
+            .outer-packaging-delivery-table td {
+              border: 1px solid #333;
+              padding: 3px 5px;
+              vertical-align: middle;
+              height: auto;
+              line-height: 1.3;
+            }
+            
+            .outer-packaging-label-cell {
               background-color: #f5f5f5;
               font-weight: bold;
-              width: 100px;
+              width: 78px;
               text-align: center;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
             
-            .value-cell {
+            .outer-packaging-value-cell {
               text-align: center;
             }
             
-            .value-cell.multi-line {
+            .outer-packaging-value-cell.outer-packaging-multi-line {
               line-height: 1.3;
-              padding: 6px 12px;
+              padding: 3px 5px;
             }
             
-            .qr-section {
+            .outer-packaging-qr-section {
               text-align: center;
               vertical-align: middle;
               position: relative;
-              padding: 16px;
+              padding: 6px;
             }
             
-            .qr-code-container {
+            .outer-packaging-qr-code-container {
               display: flex;
               flex-direction: column;
               align-items: center;
-              gap: 8px;
+              gap: 3px;
               height: 100%;
               justify-content: center;
             }
             
-            .qr-code {
-              width: 100px;
-              height: 100px;
+            .outer-packaging-qr-code {
+              width: 70px;
+              height: 70px;
               border: 1px solid #333;
               display: flex;
               align-items: center;
               justify-content: center;
               background: #fff;
-              padding: 5px;
+              padding: 3px;
             }
             
-            .qr-code svg {
-              width: 90px;
-              height: 90px;
+            .outer-packaging-qr-code svg {
+              width: 64px;
+              height: 64px;
             }
             
             @media print {
               body {
-                padding: 20px;
+                padding: 3mm;
               }
               
-              .delivery-label-container {
+              .outer-packaging-delivery-label-container {
                 page-break-after: avoid;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -219,7 +220,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 
     printWindow.document.close();
     
-    // 等待内容加载完成后打印
+    // 等待内容加载完成后打印（增加延迟确保QR码渲染完成）
     printWindow.onload = () => {
       setTimeout(async () => {
         printWindow.print();
@@ -238,12 +239,12 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
             wbzPrintCnt: 1,
           });
           
-          message.success('打印成功');
+          // message.success('打印成功');
         } catch (error) {
           console.error('更新打印状态失败:', error);
           message.warning('打印完成，但更新打印状态失败');
         }
-      }, 250);
+      }, 500); // 增加延迟时间，确保QR码完全渲染
     };
   };
 
@@ -262,35 +263,36 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
       className="outer-packaging-modal"
     >
       <div className="outer-packaging-content">
-        <div className="header-info">
-          <div className="title">供应商送货标签</div>
-          <div className="subtitle">
+        <div className="outer-packaging-header-info">
+          <div className="outer-packaging-title">供应商送货标签</div>
+          <div className="outer-packaging-subtitle">
             外包装条码<br />
-            尺寸：70mm*50mm
+            尺寸：100mm*70mm
           </div>
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>加载中...</div>
         ) : (
-          <div className="delivery-label-container">
-            <div className="label-header">
-              <h3>供应商送货标签</h3>
-            </div>
-
-            <table className="delivery-table">
+          <div className="outer-packaging-delivery-label-container">
+            <table className="outer-packaging-delivery-table">
+              <thead>
+                <tr>
+                  <th colSpan={4} className="outer-packaging-table-header">供应商送货标签</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr>
-                  <td className="label-cell">物料编码</td>
-                  <td className="value-cell" colSpan={2}>
-                    {outerPackagingData?.materialCode || record.materialCode || '0228A00179'}
+                  <td className="outer-packaging-label-cell">物料编码</td>
+                  <td className="outer-packaging-value-cell" colSpan={2}>
+                    {outerPackagingData?.materialCode || record.materialCode || ''}
                   </td>
-                  <td className="qr-section" rowSpan={2}>
-                    <div className="qr-code-container">
-                      <div className="qr-code">
+                  <td className="outer-packaging-qr-section" rowSpan={2}>
+                    <div className="outer-packaging-qr-code-container">
+                      <div className="outer-packaging-qr-code">
                         <QRCodeSVG
                           value={generateQRData()}
-                          size={90}
+                          size={64}
                           level="M"
                           fgColor="#000000"
                           bgColor="#ffffff"
@@ -300,45 +302,68 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
                   </td>
                 </tr>
                 <tr>
-                  <td className="label-cell">名称型号</td>
-                  <td className="value-cell multi-line" colSpan={2}>
-                    {outerPackagingData?.nameModel || record.nameModel || '系统电源-3相交流380V-无'}
+                  <td className="outer-packaging-label-cell">名称型号</td>
+                  <td className="outer-packaging-value-cell outer-packaging-multi-line" colSpan={2}>
+                    {outerPackagingData?.nameModel || record.nameModel || ''}
                   </td>
                 </tr>
                 <tr>
-                  <td className="label-cell">数量</td>
-                  <td className="value-cell">{outerPackagingData?.cnt || '-'}</td>
-                  <td className="label-cell">单位</td>
-                  <td className="value-cell">{outerPackagingData?.unit || '-'}</td>
-                </tr>
-                <tr>
-                  <td className="label-cell">供应商代码</td>
-                  <td className="value-cell">
-                    {outerPackagingData?.supplierCode || record.supplierCode || '-'}
-                  </td>
-                  <td className="label-cell">送货日期</td>
-                  <td className="value-cell">
-                    {formatDate(outerPackagingData?.deliveryDate || record.deliveryDate, 'YYYY-MM-DD') || '2024-09-01'}
+                  <td className="outer-packaging-label-cell">数量</td>
+                  <td className="outer-packaging-value-cell">{outerPackagingData?.cnt || ''}</td>
+                  <td className="outer-packaging-label-cell">单位</td>
+                  <td className="outer-packaging-value-cell">
+                    {outerPackagingData?.unit || ''}
+                    {/* PCS */}
                   </td>
                 </tr>
                 <tr>
-                  <td className="label-cell">PO/行号</td>
-                  <td className="value-cell">
-                    {outerPackagingData?.poNo || '-'}
+                  <td className="outer-packaging-label-cell">供应商代码</td>
+                  <td className="outer-packaging-value-cell">
+                    {outerPackagingData?.supplierCode || record.supplierCode || ''}
                   </td>
-                  <td className="label-cell">送货单号</td>
-                  <td className="value-cell">{outerPackagingData?.deliveryNo || '-'}</td>
+                  <td className="outer-packaging-label-cell">送货日期</td>
+                  <td className="outer-packaging-value-cell">
+                    {(() => {
+                      const dateValue = outerPackagingData?.deliveryDate || record.deliveryDate;
+                      if (!dateValue) return '';
+                      
+                      // 如果是数字类型的时间戳，直接使用
+                      if (typeof dateValue === 'number') {
+                        return formatDate(dateValue, 'YYYY-MM-DD');
+                      }
+                      
+                      // 如果是字符串，尝试转换为数字
+                      if (typeof dateValue === 'string') {
+                        const timestamp = parseInt(dateValue, 10);
+                        if (!isNaN(timestamp)) {
+                          return formatDate(timestamp, 'YYYY-MM-DD');
+                        }
+                        // 如果不是纯数字字符串，直接作为日期字符串处理
+                        return formatDate(dateValue, 'YYYY-MM-DD');
+                      }
+                      
+                      return formatDate(dateValue, 'YYYY-MM-DD');
+                    })()}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="label-cell">批号</td>
-                  <td className="value-cell" colSpan={3}>
-                    {outerPackagingData?.code09 || '-'}
+                  <td className="outer-packaging-label-cell">PO/行号</td>
+                  <td className="outer-packaging-value-cell">
+                    {outerPackagingData?.poNo || ''}
+                  </td>
+                  <td className="outer-packaging-label-cell">送货单号</td>
+                  <td className="outer-packaging-value-cell">{outerPackagingData?.deliveryNo || ''}</td>
+                </tr>
+                <tr>
+                  <td className="outer-packaging-label-cell">批号</td>
+                  <td className="outer-packaging-value-cell" colSpan={3}>
+                    {outerPackagingData?.code09 || ''}
                   </td>
                 </tr>
                 <tr>
-                  <td className="label-cell">存储/清洁</td>
-                  <td className="value-cell" colSpan={3}>
-                    {outerPackagingData?.saveClean || 'S50'}
+                  <td className="outer-packaging-label-cell">存储/清洁</td>
+                  <td className="outer-packaging-value-cell" colSpan={3}>
+                    {outerPackagingData?.saveClean || ''}
                   </td>
                 </tr>
               </tbody>
@@ -346,7 +371,7 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
           </div>
         )}
 
-        <div className="modal-footer">
+        <div className="outer-packaging-modal-footer">
           <Space>
             <Button 
               type="primary" 

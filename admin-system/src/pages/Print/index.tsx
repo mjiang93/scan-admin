@@ -17,11 +17,12 @@ import {
 } from 'antd';
 import { 
   SearchOutlined, 
-  ReloadOutlined
+  ReloadOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { Dayjs } from 'dayjs';
-import { queryBarcodeRecords, createCode } from '@/services/print';
+import { queryBarcodeRecords, createCode, exportBarcodeRecords } from '@/services/print';
 import type { BarcodeRecord, BarcodeQueryParams, ApiBarcodeRecord } from '@/types/print';
 import BarcodeModal from '@/components/BarcodeModal';
 import InnerPackagingModal from '@/components/InnerPackagingModal';
@@ -168,6 +169,47 @@ export function PrintPage() {
   // 同步ERP系统
   const handleSyncErp = useCallback(() => {
     setSyncErpModalVisible(true);
+  }, []);
+
+  // 导出Excel
+  const handleExport = useCallback(async () => {
+    try {
+      setLoading(true);
+      message.loading({ content: '正在导出...', key: 'export', duration: 0 });
+      
+      // 使用当前搜索参数导出
+      const blob = await exportBarcodeRecords(searchParamsRef.current);
+      
+      // 创建下载链接
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // 生成文件名：条码记录_日期时间.xlsx
+      const fileName = `条码记录_${new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).replace(/[/:]/g, '-').replace(/\s/g, '_')}.xlsx`;
+      
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // 清理
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      message.success({ content: '导出成功', key: 'export', duration: 2 });
+    } catch (error) {
+      console.error('导出失败:', error);
+      message.error({ content: '导出失败', key: 'export', duration: 2 });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // 本体操作
@@ -464,6 +506,13 @@ export function PrintPage() {
             onClick={handleSyncErp}
           >
             同步
+          </Button>
+          <Button 
+            icon={<DownloadOutlined />}
+            onClick={handleExport}
+            loading={loading}
+          >
+            导出Excel
           </Button>
         </Space>
         {selectedRowKeys.length > 0 && (

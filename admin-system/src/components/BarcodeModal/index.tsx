@@ -51,7 +51,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       }
     } catch (error) {
       console.error('加载打印数据失败:', error);
-      message.error('加载打印数据失败');
+      // message.error('加载打印数据失败');
     } finally {
       setLoading(false);
     }
@@ -102,66 +102,66 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
         <head>
           <title>本体条码</title>
           <style>
-            @page {
-              margin: 0;
-              size: A4;
+            * {
+              box-sizing: border-box;
+              margin: 0; 
+              padding: 0;
             }
             body { 
               font-family: Arial, sans-serif; 
               margin: 0; 
-              padding: 20px;
-              background: white;
+              padding: 0;
+              background: #f5f5f5;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
             .print-container { 
-              max-width: 800px; 
               margin: 0 auto;
-              border-radius: 4px;
-              padding: 20px;
               background: white;
+              border-radius: 8px;
             }
             .qr-section {
-              background: white;
-              border: 1px solid #e8e8e8;
-              border-radius: 4px;
-              padding: 20px;
-              margin-bottom: 16px;
-            }
-            .qr-content {
               display: flex;
               align-items: center;
-              gap: 40px;
+              gap: 8px;
+              background: #fafafa;
             }
             .qr-code-container {
               flex-shrink: 0;
               display: flex;
-              justify-content: center;
               align-items: center;
-              background: white;
-              padding: 8px;
+              justify-content: center;
             }
             .product-info {
               flex: 1;
+              min-width: 0;
             }
             .info-line {
-              margin: 12px 0;
-              font-size: 14px;
-              line-height: 1.6;
               display: flex;
               align-items: center;
-              gap: 8px;
+              margin-bottom: 4px;
+              font-size: 12px;
+              flex-wrap: wrap;
+            }
+              .info-line1 {
+                display:flex;
+              }
+            .info-line:last-child {
+              margin-bottom: 0;
             }
             .info-label {
-              font-weight: 500;
-              color: #666;
-              min-width: 50px;
-              text-align: left;
+              font-weight: bold;
+              margin-right: 4px;
+              color: #333;
+              flex-shrink: 0;
             }
             .info-value {
-              color: #333;
-              font-weight: 400;
-              margin-right: 12px;
+              color: #666;
+              word-break: break-all;
+              overflow-wrap: break-word;
+              flex: 1;
+              min-width: 0;
+              margin-right: 1mm;
             }
             .barcode-section {
               background: transparent;
@@ -169,41 +169,151 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
               padding: 0;
             }
             .barcode-item {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              margin: 16px 0;
-              padding: 16px;
-              background: white;
-              border: 1px solid #e8e8e8;
+              padding: 8px;
+              border: 1px solid #ddd;
               border-radius: 4px;
+              text-align: center;
+              overflow: hidden;
+              background: #fafafa;
             }
+           
             .barcode-item svg {
-              max-width: 100%;
-              height: auto;
             }
+            
+            /* 打印样式 */
             @media print {
-              body { 
-                margin: 0; 
-                padding: 10px; 
+              * {
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box;
               }
+              
+              body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+              }
+              
               .print-container {
+                position: static !important;
                 background: white !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 box-shadow: none !important;
+                border: none !important;
+                display: block !important;
+                visibility: visible !important;
+                overflow: visible !important;
               }
+              
+              /* 二维码区域 - 独立页面 48mm x 6mm */
               .qr-section {
-                border: 1px solid #333 !important;
+                width: 48mm !important;
+                height: 6mm !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0.5mm !important;
                 background: white !important;
-                box-shadow: none !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 0.5mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                 overflow: hidden !important;
               }
-              .barcode-item {
-                border: 1px solid #333 !important;
-                background: white !important;
-                margin: 10px 0 !important;
+              
+              
+              
+              .qr-code-container {
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex-shrink: 0 !important;
+                width: 5.5mm !important;
+                height: 5.5mm !important;
               }
-              .info-label,
+              
+              .qr-code-container svg {
+                width: 5.5mm !important;
+                height: 5.5mm !important;
+                display: block !important;
+              }
+              
+              .product-info {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                flex: 1 !important;
+                gap: 0.2mm !important;
+              }
+              
+              .info-line {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                margin: 0 !important;
+                font-size: 4pt !important;
+                line-height: 1 !important;
+              }
+              
+              .info-label {
+                font-weight: bold !important;
+                color: #000 !important;
+                display: flex !important;
+                flex-shrink: 0 !important;
+                margin-right: 0.2mm !important;
+              }
+              
               .info-value {
                 color: #000 !important;
+                display: inline !important;
+                white-space: nowrap !important;
+                margin-right: 0.5mm !important;
+              }
+              
+              /* 条形码区域 - 每个条形码独立页面 48mm x 6mm */
+              .barcode-section {
+                display: block !important;
+              }
+              
+              .barcode-item {
+                width: 48mm !important;
+                height: 6mm !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0.5mm !important;
+                background: white !important;
+                border-radius: 0 !important;
+                text-align: center !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-sizing: border-box !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+              }
+              
+              .barcode-item:last-child {
+                page-break-after: auto !important;
+              }
+              
+              .barcode-item svg {
+                max-height: 5mm !important;
+                max-width: 46mm !important;
+                width: auto !important;
+                height: auto !important;
+                display: block !important;
+                margin: 0 auto !important;
+              }
+              
+              /* 打印页面设置 - 48mm x 6mm */
+              @page {
+                margin: 0 !important;
+                size: 48mm 6mm !important;
               }
             }
           </style>
@@ -239,7 +349,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
           wbzPrintCnt: 0,
         });
         
-        message.success('打印任务已发送');
+        // message.success('打印任务已发送');
       } catch (error) {
         console.error('更新打印状态失败:', error);
         // 不影响打印流程，只记录错误
@@ -251,7 +361,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
 
   // 生成二维码内容
   const qrCodeContent = printData 
-    ? `PN:${printData.pnCode || ''};Rev:${printData.revCode || ''};Model:${printData.modelCode || ''};SN:${printData.codeSN || ''}`
+    ? printData.codeSN
     : '';
 
   return (
@@ -286,36 +396,38 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
           <div className="barcode-header">
             <div className="barcode-title">本体条码</div>
             <div className="barcode-subtitle">本体条码</div>
-            <div className="barcode-size">尺寸：42mm*10mm</div>
+            <div className="barcode-size">尺寸：48mm*6mm</div>
           </div>
 
           {/* 二维码和产品信息区域 */}
           {printData && (
             <div ref={printAreaRef}>
               <div className="qr-section">
-                <div className="qr-content">
-                  <div className="qr-code-container">
-                    <QRCodeSVG
-                      value={qrCodeContent}
-                      size={100}
-                      level="M"
-                    />
-                  </div>
-                  <div className="product-info">
-                    <div className="info-line">
+                <div className="qr-code-container">
+                  <QRCodeSVG
+                    value={printData.codeSNFull}
+                    size={60}
+                    level="M"
+                  />
+                </div>
+                <div className="product-info">
+                  <div className="info-line">
+                    <div className='info-line1'>
                       <span className="info-label">PN:</span>
-                      <span className="info-value">{printData.pnCode || ''}</span>
+                    <span className="info-value">{printData.pnCode || ''}</span>
+                    </div>
+                    <div className='info-line1'>
                       <span className="info-label">Rev:</span>
-                      <span className="info-value">{printData.revCode || ''}</span>
+                    <span className="info-value">{printData.revCode || ''}</span>
                     </div>
-                    <div className="info-line">
-                      <span className="info-label">Model:</span>
-                      <span className="info-value">{printData.modelCode || ''}</span>
-                    </div>
-                    <div className="info-line">
-                      <span className="info-label">SN:</span>
-                      <span className="info-value">{printData.codeSN || ''}</span>
-                    </div>
+                  </div>
+                  <div className="info-line">
+                    <span className="info-label">Model:</span>
+                    <span className="info-value">{printData.modelCode || ''}</span>
+                  </div>
+                  <div className="info-line">
+                    <span className="info-label">SN:</span>
+                    <span className="info-value">{printData.codeSN || ''}</span>
                   </div>
                 </div>
               </div>

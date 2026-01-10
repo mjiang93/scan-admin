@@ -54,7 +54,6 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
       // 直接使用record，只处理特殊字段
       form.setFieldsValue({
         ...record,
-        productionDateStart: parseTimestamp(record.productionDateStart),
         productionDateEnd: parseTimestamp(record.productionDateEnd),
         deliveryDate: parseTimestamp(record.deliveryDate),
       });
@@ -85,7 +84,6 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
       const updateData: ApiBarcodeRecord & { operator: string } = {
         ...values,
         id: record.id,
-        productionDateStart: formatDateToTimestamp(values.productionDateStart),
         productionDateEnd: formatDateToTimestamp(values.productionDateEnd),
         deliveryDate: formatDateToTimestamp(values.deliveryDate),
         operator: operator,
@@ -227,33 +225,15 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
 
         {/* 第五行：生产日期 */}
         <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item label="生产日期">
-              <Row gutter={8}>
-                <Col span={11}>
-                  <Form.Item
-                    name="productionDateStart"
-                    rules={[{ required: true, message: '请选择开始日期' }]}
-                    style={{ margin: 0 }}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={2} style={{ textAlign: 'center', lineHeight: '32px' }}>
-                  至
-                </Col>
-                <Col span={11}>
-                  <Form.Item
-                    name="productionDateEnd"
-                    style={{ margin: 0 }}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
+          <Col span={12}>
+            <Form.Item
+              label="生产日期"
+              name="productionDateEnd"
+              rules={[{ required: true, message: '请选择生产日期' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
             </Form.Item>
           </Col>
-          
         </Row>
 
         {/* 第六行：名称型号 */}
@@ -298,7 +278,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               label="出厂码"
               name="factoryCode"
             >
-              <Input />
+              <Input maxLength={15} />
             </Form.Item>
           </Col>
         </Row>

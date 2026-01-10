@@ -131,6 +131,7 @@ export interface BtPrintData {
   pnCode: string;
   revCode: string;
   modelCode: string;
+  codeSNFull:string;
   codeSN: string;
   fjList: string[]; // 条形码列表
 }

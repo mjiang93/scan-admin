@@ -9,83 +9,92 @@
   gap: 20px;
 }
 
-.header-info {
+.outer-packaging-header-info {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
 }
 
-.header-info .title {
+.outer-packaging-header-info .outer-packaging-title {
   font-size: 18px;
   font-weight: bold;
   color: #333;
 }
 
-.header-info .subtitle {
+.outer-packaging-header-info .outer-packaging-subtitle {
   font-size: 12px;
   color: #666;
   text-align: right;
   line-height: 1.4;
 }
 
-.delivery-label-container {
+.outer-packaging-delivery-label-container {
   border: 2px solid #333;
   padding: 16px;
   background: #fff;
   position: relative;
 }
 
-.label-header {
+.outer-packaging-label-header {
   text-align: center;
   margin-bottom: 16px;
   border-bottom: 1px solid #333;
   padding-bottom: 8px;
 }
 
-.label-header h3 {
+.outer-packaging-label-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: bold;
 }
 
-.delivery-table {
+.outer-packaging-delivery-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.delivery-table td {
+.outer-packaging-table-header {
+  border: 1px solid #333;
+  padding: 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #fff;
+}
+
+.outer-packaging-delivery-table td {
   border: 1px solid #333;
   padding: 8px 12px;
   vertical-align: middle;
   height: 40px;
 }
 
-.label-cell {
+.outer-packaging-label-cell {
   background-color: #f5f5f5;
   font-weight: bold;
   width: 100px;
   text-align: center;
 }
 
-.value-cell {
+.outer-packaging-value-cell {
   text-align: center;
 }
 
-.value-cell.multi-line {
+.outer-packaging-value-cell.outer-packaging-multi-line {
   line-height: 1.3;
   padding: 6px 12px;
 }
 
-.qr-section {
+.outer-packaging-qr-section {
   text-align: center;
   vertical-align: middle;
   position: relative;
   padding: 16px;
 }
 
-.qr-code-container {
+.outer-packaging-qr-code-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -94,14 +103,14 @@
   justify-content: center;
 }
 
-.qr-label {
+.outer-packaging-qr-label {
   font-size: 14px;
   font-weight: bold;
   color: #333;
   margin-bottom: 4px;
 }
 
-.qr-code {
+.outer-packaging-qr-code {
   width: 100px;
   height: 100px;
   border: 1px solid #333;
@@ -112,27 +121,27 @@
   padding: 5px;
 }
 
-.qr-code svg {
+.outer-packaging-qr-code svg {
   width: 90px;
   height: 90px;
 }
 
-.sn-section {
+.outer-packaging-sn-section {
   margin-top: 12px;
   padding: 8px;
   border-top: 1px solid #333;
   font-size: 12px;
 }
 
-.sn-label {
+.outer-packaging-sn-label {
   font-weight: bold;
 }
 
-.sn-value {
+.outer-packaging-sn-value {
   font-family: monospace;
 }
 
-.modal-footer {
+.outer-packaging-modal-footer {
   display: flex;
   justify-content: center;
   margin-top: 20px;
@@ -147,7 +156,7 @@
     padding: 0;
   }
   
-  .delivery-label-container {
+  .outer-packaging-delivery-label-container {
     page-break-after: avoid;
     width: 70mm;
     height: 50mm;
@@ -159,50 +168,50 @@
     print-color-adjust: exact;
   }
   
-  .label-header {
+  .outer-packaging-label-header {
     margin-bottom: 8px;
     padding-bottom: 4px;
   }
   
-  .label-header h3 {
+  .outer-packaging-label-header h3 {
     font-size: 10px;
     margin: 0;
   }
   
-  .delivery-table {
+  .outer-packaging-delivery-table {
     width: 100%;
     font-size: 7px;
     border-collapse: collapse;
   }
   
-  .delivery-table td {
+  .outer-packaging-delivery-table td {
     padding: 2px 4px;
     border: 1px solid #333 !important;
     height: auto;
   }
   
-  .label-cell {
+  .outer-packaging-label-cell {
     background-color: #f5f5f5 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   
-  .qr-section {
+  .outer-packaging-qr-section {
     padding: 4px;
   }
   
-  .qr-code-container {
+  .outer-packaging-qr-code-container {
     gap: 4px;
   }
   
-  .qr-code {
+  .outer-packaging-qr-code {
     width: 50px;
     height: 50px;
     padding: 2px;
     border: 1px solid #333 !important;
   }
   
-  .qr-code svg {
+  .outer-packaging-qr-code svg {
     width: 46px !important;
     height: 46px !important;
   }
@@ -214,27 +223,27 @@
     width: 95% !important;
   }
   
-  .delivery-table {
+  .outer-packaging-delivery-table {
     font-size: 12px;
   }
   
-  .delivery-table td {
+  .outer-packaging-delivery-table td {
     padding: 6px 8px;
     height: 35px;
   }
   
-  .qr-code {
+  .outer-packaging-qr-code {
     width: 80px;
     height: 80px;
     padding: 4px;
   }
   
-  .qr-code svg {
+  .outer-packaging-qr-code svg {
     width: 72px;
     height: 72px;
   }
   
-  .qr-section {
+  .outer-packaging-qr-section {
     width: 140px;
     padding: 12px;
   }

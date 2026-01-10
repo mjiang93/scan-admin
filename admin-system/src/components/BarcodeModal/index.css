@@ -44,6 +44,7 @@
   border-radius: 4px;
   padding: 20px;
   margin-bottom: 16px;
+  display:flex;
 }
 
 .qr-content {
@@ -66,12 +67,15 @@
 }
 
 .info-line {
-  margin: 12px 0;
   font-size: 14px;
   line-height: 1.6;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.info-line1 {
+  display:flex;
 }
 
 .info-label {

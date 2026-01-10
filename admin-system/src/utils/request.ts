@@ -99,6 +99,11 @@ instance.interceptors.response.use(
     removePendingRequest(response.config);
     const { data } = response;
     
+    // 如果是blob类型，直接返回
+    if (response.config.responseType === 'blob') {
+      return data;
+    }
+    
     // 只有当 code === 0 时才算成功
     if (data.code === 0) {
       return data;

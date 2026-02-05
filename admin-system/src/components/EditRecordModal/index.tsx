@@ -277,6 +277,9 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
             <Form.Item
               label="出厂码"
               name="factoryCode"
+              rules={[
+                { len: 15, message: '出厂码必须是15位字符' }
+              ]}
             >
               <Input maxLength={15} />
             </Form.Item>

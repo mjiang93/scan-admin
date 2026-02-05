@@ -48,7 +48,7 @@ export default function Login() {
           <Form 
             form={form} 
             onFinish={handleSubmit}
-            initialValues={{ userId: 'capo001', password: '123456' }}
+            initialValues={{ userId: '', password: '' }}
           >
             <Form.Item
               name="userId"

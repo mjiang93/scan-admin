@@ -303,3 +303,55 @@ export function hasBarcode(templateType: PrintTemplateType): boolean {
 export function hasQRCode(templateType: PrintTemplateType): boolean {
   return templateType === PrintTemplateType.QR_CODE;
 }
+
+/**
+ * 打印机信息
+ */
+export interface PrinterInfo {
+  printerId: string;
+  printerName: string;
+  ip: string;
+  port: number;
+  model: string;
+  department?: string;
+  location?: string;
+  status: 'ONLINE' | 'OFFLINE';
+  connectionType?: string;
+  printMode?: string;
+  serverIp?: string;
+  serverPort?: number;
+  lprQueue?: string;
+  paperWidth?: number;
+  paperHeight?: number;
+  supportCut?: boolean;
+  isEnabled?: boolean;
+  priority?: number;
+  lastHeartbeat?: string;
+  remark?: string;
+}
+
+/**
+ * 打印机查询参数
+ */
+export interface PrinterQueryParams {
+  pageNum?: number;
+  pageSize?: number;
+  status?: 'ONLINE' | 'OFFLINE' | 'ALL';
+  department?: string;
+  keyword?: string;
+}
+
+/**
+ * 打印机列表响应
+ */
+export interface PrinterListResponse {
+  code: number;
+  data: {
+    empty: boolean;
+    result: PrinterInfo[];
+    total: number;
+  };
+  errorMsg: string;
+  msg: string;
+  success: boolean;
+}

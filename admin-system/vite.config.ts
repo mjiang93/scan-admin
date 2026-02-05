@@ -11,6 +11,9 @@ export default defineConfig({
     },
   },
   server: {
+    port: 3000, // 开发服务器端口
+    host: true, // 监听所有地址
+    open: true, // 自动打开浏览器
     proxy: {
       '/api': {
         target: 'http://47.110.53.133:7077',

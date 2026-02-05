@@ -2,13 +2,15 @@
  * 外包装弹窗组件 - 供应商送货标签
  */
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Space, message } from 'antd';
-import { PrinterOutlined } from '@ant-design/icons';
+import { Modal, Button, Space, message, Tag } from 'antd';
+import { PrinterOutlined, SettingOutlined } from '@ant-design/icons';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord } from '@/types/print';
-import { scanNbzcode, updatePrintStatus } from '@/services/print';
+import { scanNbzcode, updatePrintStatus, printWbzBarcode } from '@/services/print';
 import { getStorage } from '@/utils/storage';
 import { formatDate } from '@/utils/format';
+import { usePrinterSelect } from '@/hooks';
+import { PrinterSelectModal } from '@/components';
 import './index.css';
 
 interface OuterPackagingModalProps {
@@ -39,6 +41,9 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [outerPackagingData, setOuterPackagingData] = useState<OuterPackagingData | null>(null);
+  
+  // 打印机选择
+  const printerSelect = usePrinterSelect();
 
   // 加载外包装数据
   const loadData = async (code: string) => {
@@ -70,182 +75,67 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 
   // 处理打印操作
   const handlePrint = async () => {
+    // 检查是否选择了打印机
+    if (!printerSelect.selectedPrinter) {
+      message.warning('请先选择打印机');
+      printerSelect.openModal('600');
+      return;
+    }
+
+    // 检查打印机是否在线
+if (printerSelect.selectedPrinter.status !== 'ONLINE') {
+    message.error('打印机离线，请重新选择');
+    printerSelect.openModal('600');
+    return;
+    }
+
     console.log('打印外包装标签:', outerPackagingData || record);
     
-    // 获取打印内容（只获取标签容器）
-    const printContent = document.querySelector('.outer-packaging-delivery-label-container');
-    if (!printContent) {
-      console.error('未找到打印内容');
-      message.error('未找到打印内容');
-      return;
-    }
-
-    // 创建打印窗口
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      console.error('无法打开打印窗口');
-      message.error('无法打开打印窗口');
-      return;
-    }
-
-    // 构建打印页面HTML
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>供应商送货标签</title>
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            @page {
-              size: 100mm 70mm;
-              margin: 0;
-            }
-            
-            html, body {
-              margin: 0;
-              padding: 0;
-            }
-            
-            body {
-              padding: 3mm;
-            }
-            
-            .outer-packaging-delivery-label-container {
-              background: #fff;
-              position: relative;
-              width: 94mm;
-              height: 64mm;
-            }
-            
-            .outer-packaging-delivery-table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 12px;
-              border: 2px solid #333;
-            }
-            
-            .outer-packaging-table-header {
-              border: 1px solid #333;
-              padding: 6px;
-              text-align: center;
-              font-size: 16px;
-              font-weight: bold;
-              background-color: #fff;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            
-            .outer-packaging-delivery-table td {
-              border: 1px solid #333;
-              padding: 3px 5px;
-              vertical-align: middle;
-              height: auto;
-              line-height: 1.3;
-            }
-            
-            .outer-packaging-label-cell {
-              background-color: #f5f5f5;
-              font-weight: bold;
-              width: 78px;
-              text-align: center;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            
-            .outer-packaging-value-cell {
-              text-align: center;
-            }
-            
-            .outer-packaging-value-cell.outer-packaging-multi-line {
-              line-height: 1.3;
-              padding: 3px 5px;
-            }
-            
-            .outer-packaging-qr-section {
-              text-align: center;
-              vertical-align: middle;
-              position: relative;
-              padding: 6px;
-            }
-            
-            .outer-packaging-qr-code-container {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 3px;
-              height: 100%;
-              justify-content: center;
-            }
-            
-            .outer-packaging-qr-code {
-              width: 70px;
-              height: 70px;
-              border: 1px solid #333;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: #fff;
-              padding: 3px;
-            }
-            
-            .outer-packaging-qr-code svg {
-              width: 64px;
-              height: 64px;
-            }
-            
-            @media print {
-              body {
-                padding: 3mm;
-              }
-              
-              .outer-packaging-delivery-label-container {
-                page-break-after: avoid;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.outerHTML}
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    
-    // 等待内容加载完成后打印（增加延迟确保QR码渲染完成）
-    printWindow.onload = () => {
-      setTimeout(async () => {
-        printWindow.print();
-        printWindow.close();
+    try {
+      // 调用外包装码打印接口
+      const userInfo = getStorage<{ userName: string }>('userInfo');
+      const operator = userInfo?.userName || 'unknown';
+      
+      const printParams = {
+        id: outerPackagingData?.id || parseInt(record.id),
+        operator,
+        codeSn: record.codeSn, // 使用详情接口的 codeSn 字段
+        printerId: printerSelect.selectedPrinter.printerId,
+        btPrintCnt: 0,
+        nbzPrintCnt: 0,
+        wbzPrintCnt: 1,
+      };
+      
+      console.log('外包装码打印接口调用参数:', printParams);
+      
+      const response = await printWbzBarcode(printParams);
+      
+      console.log('外包装码打印接口响应:', response);
+      
+      message.success('打印指令已发送');
+      
+      // 更新打印状态
+      try {
+        await updatePrintStatus({
+          id: outerPackagingData?.id || parseInt(record.id),
+          operator,
+          codeSn: record.codeSn,
+          printerId: printerSelect.selectedPrinter.printerId,
+          btPrintCnt: 0,
+          nbzPrintCnt: 0,
+          wbzPrintCnt: 1,
+        });
         
-        // 打印成功后调用接口更新打印状态
-        try {
-          const userInfo = getStorage<{ userName: string }>('userInfo');
-          const operator = userInfo?.userName || 'unknown';
-          
-          await updatePrintStatus({
-            id: parseInt(record.id),
-            operator,
-            btPrintCnt: 0,
-            nbzPrintCnt: 0,
-            wbzPrintCnt: 1,
-          });
-          
-          // message.success('打印成功');
-        } catch (error) {
-          console.error('更新打印状态失败:', error);
-          message.warning('打印完成，但更新打印状态失败');
-        }
-      }, 500); // 增加延迟时间，确保QR码完全渲染
-    };
+        message.success(`使用 ${printerSelect.selectedPrinter.printerName} 打印成功`);
+      } catch (error) {
+        console.error('更新打印状态失败:', error);
+        // 不影响打印流程，只记录错误
+      }
+    } catch (error) {
+      console.error('打印接口调用失败:', error);
+      message.error(`打印失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      return;
+    }
   };
 
   // 生成二维码数据 - 使用接口返回的codeSN
@@ -373,11 +263,30 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
 
         <div className="outer-packaging-modal-footer">
           <Space>
+            {/* 打印机选择按钮 */}
+            <Button 
+              icon={<SettingOutlined />}
+              onClick={() => printerSelect.openModal('600')}
+            >
+              {printerSelect.selectedPrinter 
+                ? `打印机: ${printerSelect.selectedPrinter.printerName}` 
+                : '选择打印机'}
+            </Button>
+            
+            {/* 显示打印机状态 */}
+            {printerSelect.selectedPrinter && (
+              <Tag color={printerSelect.selectedPrinter.status === 'ONLINE' ? 'success' : 'error'}>
+                {printerSelect.selectedPrinter.status === 'ONLINE' ? '在线' : '离线'}
+              </Tag>
+            )}
+            
+            {/* 打印按钮 */}
             <Button 
               type="primary" 
               icon={<PrinterOutlined />}
               onClick={handlePrint}
               loading={loading}
+              disabled={!printerSelect.selectedPrinter}
             >
               打印
             </Button>
@@ -387,6 +296,16 @@ const OuterPackagingModal: React.FC<OuterPackagingModalProps> = ({
           </Space>
         </div>
       </div>
+      
+      {/* 打印机选择弹窗 */}
+      <PrinterSelectModal
+        visible={printerSelect.visible}
+        onCancel={printerSelect.closeModal}
+        onSelect={printerSelect.handleSelect}
+        title="选择外包装码打印机"
+        onlineOnly={true}
+        department={printerSelect.department}
+      />
     </Modal>
   );
 };

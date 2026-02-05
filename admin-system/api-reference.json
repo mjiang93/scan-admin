@@ -18,6 +18,272 @@
     }
   },
   "apis": {
+    "printer": {
+      "name": "打印机相关接口",
+      "endpoints": {
+        "list": {
+          "path": "/printer/list",
+          "method": "GET",
+          "summary": "获取打印机列表",
+          "params": {
+            "pageNum": {
+              "type": "string",
+              "required": false,
+              "default": "1",
+              "description": "页码"
+            },
+            "pageSize": {
+              "type": "string",
+              "required": false,
+              "default": "20",
+              "description": "每页大小"
+            },
+            "status": {
+              "type": "string",
+              "required": false,
+              "default": "ALL",
+              "description": "状态筛选：ONLINE/OFFLINE/ALL"
+            },
+            "department": {
+              "type": "string",
+              "required": false,
+              "description": "部门筛选"
+            },
+            "keyword": {
+              "type": "string",
+              "required": false,
+              "description": "搜索关键词"
+            }
+          },
+          "response": "返回结果«分页对象«打印机信息»»"
+        },
+        "add": {
+          "path": "/printer/add",
+          "method": "POST",
+          "summary": "添加打印机",
+          "requestBody": "打印机信息对象",
+          "response": "返回结果«string»"
+        },
+        "update": {
+          "path": "/printer/update/{printerId}",
+          "method": "PUT",
+          "summary": "更新打印机信息",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "requestBody": "打印机信息对象",
+          "response": "返回结果«boolean»"
+        },
+        "delete": {
+          "path": "/printer/delete/{printerId}",
+          "method": "DELETE",
+          "summary": "删除打印机",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "response": "返回结果«boolean»"
+        },
+        "available": {
+          "path": "/printer/available",
+          "method": "GET",
+          "summary": "获取可用打印机列表",
+          "params": {
+            "department": {
+              "type": "string",
+              "required": false,
+              "description": "部门筛选"
+            }
+          },
+          "response": "返回结果«分页对象«打印机信息»»"
+        },
+        "departments": {
+          "path": "/printer/departments",
+          "method": "GET",
+          "summary": "获取所有部门列表",
+          "response": "返回结果«分页对象«string»»"
+        },
+        "status": {
+          "path": "/printer/status/{printerId}",
+          "method": "GET",
+          "summary": "检查打印机状态",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "response": "返回结果«打印机信息»"
+        },
+        "realtimeStatus": {
+          "path": "/printer/realtime-status/{printerId}",
+          "method": "GET",
+          "summary": "获取打印机实时状态",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "response": "返回结果«Map«string,object»»"
+        },
+        "test": {
+          "path": "/printer/test/{printerId}",
+          "method": "GET",
+          "summary": "测试打印机连接",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "response": "返回结果«boolean»"
+        },
+        "testPage": {
+          "path": "/printer/test-page/{printerId}",
+          "method": "GET",
+          "summary": "打印测试页",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            },
+            "operator": {
+              "type": "string",
+              "required": true,
+              "description": "操作人"
+            }
+          },
+          "response": "返回结果«PrintJobRes»"
+        },
+        "print": {
+          "path": "/printer/print",
+          "method": "POST",
+          "summary": "打印标签（前端控制样式）",
+          "requestBody": "PrintLabelReq对象",
+          "response": "返回结果«PrintJobRes»"
+        },
+        "autoPrint": {
+          "path": "/printer/print/auto",
+          "method": "POST",
+          "summary": "自动选择打印机打印",
+          "requestBody": "PrintLabelReq对象",
+          "response": "返回结果«PrintJobRes»"
+        },
+        "batchPrint": {
+          "path": "/printer/batch-print",
+          "method": "POST",
+          "summary": "批量打印",
+          "requestBody": "PrintLabelReq数组",
+          "response": "返回结果«分页对象«PrintJobRes»»"
+        },
+        "batchPrint48x6": {
+          "path": "/printer/print/batch/image/48x6",
+          "method": "POST",
+          "summary": "批量打印本体码图片（48mm×6mm）",
+          "requestBody": "批量图片打印请求",
+          "response": "返回结果«分页对象«PrintJobRes»»"
+        },
+        "batchPrint100x70": {
+          "path": "/printer/print/batch/image/100x70",
+          "method": "POST",
+          "summary": "批量打印内/外包装码图片（100mm×70mm）",
+          "requestBody": "批量图片打印请求",
+          "response": "返回结果«分页对象«PrintJobRes»»"
+        },
+        "batchPrintCustom": {
+          "path": "/printer/print/batch/image/{size}",
+          "method": "POST",
+          "summary": "批量打印自定义尺寸图片",
+          "params": {
+            "size": {
+              "type": "string",
+              "required": true,
+              "description": "图片尺寸（格式：宽度x高度，单位：mm）"
+            }
+          },
+          "requestBody": "批量图片打印请求",
+          "response": "返回结果«分页对象«PrintJobRes»»"
+        },
+        "sendRaw": {
+          "path": "/printer/raw/{printerId}",
+          "method": "POST",
+          "summary": "发送原始ESC/POS指令到打印机",
+          "params": {
+            "printerId": {
+              "type": "string",
+              "required": true,
+              "description": "打印机ID"
+            }
+          },
+          "requestBody": {
+            "commandBase64": {
+              "type": "string",
+              "required": true,
+              "description": "Base64编码的命令"
+            }
+          },
+          "response": "返回结果«boolean»"
+        },
+        "importExcel": {
+          "path": "/printer/import-excel",
+          "method": "POST",
+          "summary": "导入Excel文件中的打印机",
+          "requestBody": "打印机信息数组",
+          "response": "返回结果«int»"
+        },
+        "syncFromExcel": {
+          "path": "/printer/sync-from-excel",
+          "method": "POST",
+          "summary": "从Excel同步打印机信息",
+          "response": "返回结果«int»"
+        }
+      }
+    },
+    "barcodePrint": {
+      "name": "条码打印接口",
+      "endpoints": {
+        "printBt": {
+          "path": "/barcode/print/bt",
+          "method": "POST",
+          "summary": "打印本体码",
+          "requestBody": "条码打印请求参数",
+          "response": "返回结果«boolean»"
+        },
+        "printNbz": {
+          "path": "/barcode/print/nbz",
+          "method": "POST",
+          "summary": "打印内包装码",
+          "requestBody": "条码打印请求参数",
+          "response": "返回结果«boolean»"
+        },
+        "printWbz": {
+          "path": "/barcode/print/wbz",
+          "method": "POST",
+          "summary": "打印外包装码",
+          "requestBody": "条码打印请求参数",
+          "response": "返回结果«boolean»"
+        },
+        "printBatch": {
+          "path": "/barcode/print/batch",
+          "method": "POST",
+          "summary": "批量打印所有条码",
+          "requestBody": "条码打印请求参数",
+          "response": "返回结果«boolean»"
+        }
+      }
+    },
     "barcode": {
       "name": "PC条码管理相关接口",
       "endpoints": {
@@ -586,6 +852,118 @@
     }
   },
   "requestModels": {
+    "PrintLabelReq": {
+      "barcodeId": {
+        "type": "integer",
+        "format": "int64",
+        "description": "条码ID"
+      },
+      "printerId": {
+        "type": "string",
+        "required": true,
+        "description": "打印机ID"
+      },
+      "ip": {
+        "type": "string",
+        "description": "打印机IP"
+      },
+      "port": {
+        "type": "integer",
+        "format": "int32",
+        "description": "打印机端口"
+      },
+      "printType": {
+        "type": "string",
+        "description": "打印类型"
+      },
+      "printData": {
+        "type": "string",
+        "description": "打印数据"
+      },
+      "operator": {
+        "type": "string",
+        "description": "操作人"
+      },
+      "copies": {
+        "type": "integer",
+        "format": "int32",
+        "description": "打印份数"
+      },
+      "priority": {
+        "type": "integer",
+        "format": "int32",
+        "description": "优先级"
+      }
+    },
+    "批量图片打印请求": {
+      "printerId": {
+        "type": "string",
+        "description": "打印机ID"
+      },
+      "ip": {
+        "type": "string",
+        "description": "打印机IP"
+      },
+      "port": {
+        "type": "integer",
+        "format": "int32",
+        "description": "打印机端口"
+      },
+      "images": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "required": true,
+        "description": "图片列表"
+      },
+      "operator": {
+        "type": "string",
+        "required": true,
+        "description": "操作人"
+      },
+      "printStrategy": {
+        "type": "string",
+        "description": "打印策略：SINGLE-每张图片单独打印，MERGE-合并打印"
+      },
+      "saveTempFile": {
+        "type": "boolean",
+        "description": "是否保存临时文件"
+      },
+      "remark": {
+        "type": "string",
+        "description": "备注"
+      }
+    },
+    "图片项": {
+      "imageBase64": {
+        "type": "string",
+        "required": true,
+        "description": "图片Base64编码数据"
+      },
+      "imageName": {
+        "type": "string",
+        "description": "图片名称"
+      },
+      "imageFormat": {
+        "type": "string",
+        "description": "图片格式：png/jpg/bmp"
+      },
+      "copies": {
+        "type": "integer",
+        "format": "int32",
+        "description": "打印份数"
+      },
+      "data": {
+        "type": "string",
+        "description": "关联数据（如二维码内容）"
+      },
+      "sortOrder": {
+        "type": "integer",
+        "format": "int32",
+        "description": "排序号"
+      }
+    },
     "条码查询": {
       "page": {
         "type": "integer",
@@ -828,6 +1206,155 @@
     }
   },
   "models": {
+    "打印机信息": {
+      "printerId": {
+        "type": "string",
+        "description": "打印机ID"
+      },
+      "printerName": {
+        "type": "string",
+        "description": "打印机名称"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP地址"
+      },
+      "port": {
+        "type": "integer",
+        "format": "int32",
+        "description": "端口"
+      },
+      "model": {
+        "type": "string",
+        "description": "打印机型号"
+      },
+      "department": {
+        "type": "string",
+        "description": "部门"
+      },
+      "location": {
+        "type": "string",
+        "description": "位置描述"
+      },
+      "status": {
+        "type": "string",
+        "description": "状态：ONLINE-在线，OFFLINE-离线"
+      },
+      "connectionType": {
+        "type": "string",
+        "description": "连接类型：NETWORK-网络"
+      },
+      "printMode": {
+        "type": "string",
+        "description": "打印方式：DIRECT-直接打印，LPR-通过LPR服务器"
+      },
+      "serverIp": {
+        "type": "string",
+        "description": "LPR服务器IP"
+      },
+      "serverPort": {
+        "type": "integer",
+        "format": "int32",
+        "description": "LPR服务器端口"
+      },
+      "lprQueue": {
+        "type": "string",
+        "description": "LPR队列名称（格式：PRINTER_IP）"
+      },
+      "paperWidth": {
+        "type": "integer",
+        "format": "int32",
+        "description": "纸张宽度(mm)"
+      },
+      "paperHeight": {
+        "type": "integer",
+        "format": "int32",
+        "description": "纸张高度(mm)"
+      },
+      "supportCut": {
+        "type": "boolean",
+        "description": "是否支持切纸"
+      },
+      "isEnabled": {
+        "type": "boolean",
+        "description": "是否启用"
+      },
+      "priority": {
+        "type": "integer",
+        "format": "int32",
+        "description": "优先级"
+      },
+      "lastHeartbeat": {
+        "type": "string",
+        "format": "date-time",
+        "description": "最后心跳时间"
+      },
+      "remark": {
+        "type": "string",
+        "description": "备注"
+      }
+    },
+    "PrintJobRes": {
+      "jobId": {
+        "type": "string",
+        "description": "任务ID"
+      },
+      "printerId": {
+        "type": "string",
+        "description": "打印机ID"
+      },
+      "barcodeId": {
+        "type": "integer",
+        "format": "int64",
+        "description": "条码ID"
+      },
+      "printType": {
+        "type": "string",
+        "description": "打印类型"
+      },
+      "status": {
+        "type": "string",
+        "description": "状态"
+      },
+      "operator": {
+        "type": "string",
+        "description": "操作人"
+      },
+      "createTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "创建时间"
+      },
+      "startTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "开始时间"
+      },
+      "endTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "结束时间"
+      },
+      "errorMessage": {
+        "type": "string",
+        "description": "错误信息"
+      },
+      "totalCount": {
+        "type": "integer",
+        "format": "int32",
+        "description": "总数量（批量打印时使用）"
+      },
+      "successCount": {
+        "type": "integer",
+        "format": "int32",
+        "description": "成功数量（批量打印时使用）"
+      },
+      "failCount": {
+        "type": "integer",
+        "format": "int32",
+        "description": "失败数量（批量打印时使用）"
+      }
+    },
     "条码信息": {
       "id": {
         "type": "integer",
@@ -1155,6 +1682,21 @@
     "userStatus": {
       "0": "正常",
       "1": "冻结"
+    },
+    "printerStatus": {
+      "ONLINE": "在线",
+      "OFFLINE": "离线"
+    },
+    "connectionType": {
+      "NETWORK": "网络"
+    },
+    "printMode": {
+      "DIRECT": "直接打印",
+      "LPR": "通过LPR服务器"
+    },
+    "printStrategy": {
+      "SINGLE": "每张图片单独打印",
+      "MERGE": "合并打印"
     }
   }
 }

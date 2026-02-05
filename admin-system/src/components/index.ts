@@ -30,3 +30,7 @@ export {
   QRCodeTemplate,
 } from './Print';
 export type { BarcodeProps, QRCodeProps, PrintTemplateProps } from './Print';
+
+// Printer components
+export { default as PrinterSelectModal } from './PrinterSelectModal';
+export type { PrinterSelectModalProps } from './PrinterSelectModal';

@@ -2,13 +2,15 @@
  * 条码二维码弹窗组件
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Button, message, Space, Spin } from 'antd';
-import { PrinterOutlined } from '@ant-design/icons';
+import { Modal, Button, message, Space, Spin, Tag } from 'antd';
+import { PrinterOutlined, SettingOutlined } from '@ant-design/icons';
 import JsBarcode from 'jsbarcode';
 import { QRCodeSVG } from 'qrcode.react';
 import type { BarcodeRecord, BtPrintData } from '@/types/print';
-import { getBtPrintInfo, updatePrintStatus } from '@/services/print';
+import { getBtPrintInfo, updatePrintStatus, printBtBarcode } from '@/services/print';
 import { getStorage } from '@/utils/storage';
+import { usePrinterSelect } from '@/hooks';
+import { PrinterSelectModal } from '@/components';
 import './index.css';
 
 interface BarcodeModalProps {
@@ -27,8 +29,11 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [printData, setPrintData] = useState<BtPrintData | null>(null);
-  const barcodeRefs = useRef<(SVGSVGElement | null)[]>([]);
+  const barcodeSvgRefs = useRef<(SVGSVGElement | null)[]>([]);
   const printAreaRef = useRef<HTMLDivElement>(null);
+  
+  // 打印机选择
+  const printerSelect = usePrinterSelect();
 
   // 加载本体打印数据
   const loadPrintData = async () => {
@@ -45,13 +50,44 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       });
       
       if (response.success && response.data) {
-        setPrintData(response.data as unknown as BtPrintData);
+        const data = response.data as {
+          pnCode?: string;
+          revCode?: string;
+          modelCode?: string;
+          codeSNFull?: string;
+          codeSN?: string;
+          fjList?: Array<{ fjCode?: string } | string>;
+        };
+        
+        // 处理 fjList - 从对象数组中提取 fjCode 字段
+        let fjListArray: string[] = [];
+        if (Array.isArray(data.fjList)) {
+          fjListArray = data.fjList.map((item: { fjCode?: string } | string) => {
+            // 如果是对象，提取 fjCode 字段
+            if (typeof item === 'object' && item !== null && 'fjCode' in item && item.fjCode) {
+              return String(item.fjCode);
+            }
+            // 如果是字符串，直接返回
+            return String(item || '');
+          });
+        }
+        
+        const safeData: BtPrintData = {
+          pnCode: String(data.pnCode || ''),
+          revCode: String(data.revCode || ''),
+          modelCode: String(data.modelCode || ''),
+          codeSNFull: String(data.codeSNFull || data.codeSN || ''),
+          codeSN: String(data.codeSN || ''),
+          fjList: fjListArray,
+        };
+        
+        setPrintData(safeData);
       } else {
         message.error(response.errorMsg || '获取打印数据失败');
       }
     } catch (error) {
       console.error('加载打印数据失败:', error);
-      // message.error('加载打印数据失败');
+      message.error('加载打印数据失败');
     } finally {
       setLoading(false);
     }
@@ -66,20 +102,22 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, record]);
 
-  // 生成条形码
+  // 生成条形码 SVG - 使用矢量格式，打印永不模糊
   useEffect(() => {
     if (visible && printData && printData.fjList && printData.fjList.length > 0) {
       try {
         printData.fjList.forEach((barcodeValue, index) => {
-          const ref = barcodeRefs.current[index];
-          if (ref && barcodeValue) {
-            JsBarcode(ref, barcodeValue, {
+          const svg = barcodeSvgRefs.current[index];
+          if (svg && barcodeValue) {
+            // 使用 SVG 格式生成条形码，矢量图形打印永不模糊
+            JsBarcode(svg, barcodeValue, {
               format: 'CODE128',
-              width: 1.5,
-              height: 50,
-              displayValue: true,
-              fontSize: 10,
-              margin: 10,
+              width: 0.5,              // 条宽度（最小化以适应48mm宽度）
+              height: 15,            // 条高度（减小以适应6mm标签）
+              displayValue: false,   // 不在条形码内显示文字
+              margin: 0,           // 最小边距
+              background: '#ffffff',
+              lineColor: '#000000',
             });
           }
         });
@@ -90,279 +128,72 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
     }
   }, [visible, printData]);
 
-  // 打印功能
+  // 打印功能 - 使用 SVG 矢量格式，永不模糊
   const handlePrint = async () => {
+    // 检查是否选择了打印机
+    if (!printerSelect.selectedPrinter) {
+      message.warning('请先选择打印机');
+      printerSelect.openModal('300');
+      return;
+    }
+
+    // 检查打印机是否在线
+    if (printerSelect.selectedPrinter.status !== 'ONLINE') {
+      message.error('打印机离线，请重新选择');
+      printerSelect.openModal('300');
+      return;
+    }
+
     if (!printAreaRef.current || !record || !printData) return;
     
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>本体条码</title>
-          <style>
-            * {
-              box-sizing: border-box;
-              margin: 0; 
-              padding: 0;
-            }
-            body { 
-              font-family: Arial, sans-serif; 
-              margin: 0; 
-              padding: 0;
-              background: #f5f5f5;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .print-container { 
-              margin: 0 auto;
-              background: white;
-              border-radius: 8px;
-            }
-            .qr-section {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              background: #fafafa;
-            }
-            .qr-code-container {
-              flex-shrink: 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .product-info {
-              flex: 1;
-              min-width: 0;
-            }
-            .info-line {
-              display: flex;
-              align-items: center;
-              margin-bottom: 4px;
-              font-size: 12px;
-              flex-wrap: wrap;
-            }
-              .info-line1 {
-                display:flex;
-              }
-            .info-line:last-child {
-              margin-bottom: 0;
-            }
-            .info-label {
-              font-weight: bold;
-              margin-right: 4px;
-              color: #333;
-              flex-shrink: 0;
-            }
-            .info-value {
-              color: #666;
-              word-break: break-all;
-              overflow-wrap: break-word;
-              flex: 1;
-              min-width: 0;
-              margin-right: 1mm;
-            }
-            .barcode-section {
-              background: transparent;
-              border: none;
-              padding: 0;
-            }
-            .barcode-item {
-              padding: 8px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-              text-align: center;
-              overflow: hidden;
-              background: #fafafa;
-            }
-           
-            .barcode-item svg {
-            }
-            
-            /* 打印样式 */
-            @media print {
-              * {
-                margin: 0 !important;
-                padding: 0 !important;
-                box-sizing: border-box;
-              }
-              
-              body {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: white !important;
-              }
-              
-              .print-container {
-                position: static !important;
-                background: white !important;
-                border-radius: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                display: block !important;
-                visibility: visible !important;
-                overflow: visible !important;
-              }
-              
-              /* 二维码区域 - 独立页面 48mm x 6mm */
-              .qr-section {
-                width: 48mm !important;
-                height: 6mm !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0.5mm !important;
-                background: white !important;
-                border-radius: 0 !important;
-                display: flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                gap: 0.5mm !important;
-                box-sizing: border-box !important;
-                page-break-inside: avoid !important;
-                 overflow: hidden !important;
-              }
-              
-              
-              
-              .qr-code-container {
-                margin: 0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                flex-shrink: 0 !important;
-                width: 5.5mm !important;
-                height: 5.5mm !important;
-              }
-              
-              .qr-code-container svg {
-                width: 5.5mm !important;
-                height: 5.5mm !important;
-                display: block !important;
-              }
-              
-              .product-info {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                flex: 1 !important;
-                gap: 0.2mm !important;
-              }
-              
-              .info-line {
-                display: flex !important;
-                flex-wrap: nowrap !important;
-                align-items: center !important;
-                margin: 0 !important;
-                font-size: 4pt !important;
-                line-height: 1 !important;
-              }
-              
-              .info-label {
-                font-weight: bold !important;
-                color: #000 !important;
-                display: flex !important;
-                flex-shrink: 0 !important;
-                margin-right: 0.2mm !important;
-              }
-              
-              .info-value {
-                color: #000 !important;
-                display: inline !important;
-                white-space: nowrap !important;
-                margin-right: 0.5mm !important;
-              }
-              
-              /* 条形码区域 - 每个条形码独立页面 48mm x 6mm */
-              .barcode-section {
-                display: block !important;
-              }
-              
-              .barcode-item {
-                width: 48mm !important;
-                height: 6mm !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0.5mm !important;
-                background: white !important;
-                border-radius: 0 !important;
-                text-align: center !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                box-sizing: border-box !important;
-                page-break-after: always !important;
-                page-break-inside: avoid !important;
-              }
-              
-              .barcode-item:last-child {
-                page-break-after: auto !important;
-              }
-              
-              .barcode-item svg {
-                max-height: 5mm !important;
-                max-width: 46mm !important;
-                width: auto !important;
-                height: auto !important;
-                display: block !important;
-                margin: 0 auto !important;
-              }
-              
-              /* 打印页面设置 - 48mm x 6mm */
-              @page {
-                margin: 0 !important;
-                size: 48mm 6mm !important;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-container">
-            ${printAreaRef.current.innerHTML}
-          </div>
-        </body>
-        </html>
-      `;
+    try {
+      // 调用本体码打印接口
+      const userInfo = getStorage<{ userName: string }>('userInfo');
+      const operator = userInfo?.userName || 'unknown';
       
-      printWindow.document.write(printContent);
-      printWindow.document.close();
+      const printParams = {
+        id: parseInt(record.id),
+        operator,
+        codeSn: record.codeSn, // 使用详情接口的 codeSn 字段
+        printerId: printerSelect.selectedPrinter.printerId,
+        btPrintCnt: 1,
+        nbzPrintCnt: 0,
+        wbzPrintCnt: 0,
+      };
       
-      // 等待内容加载完成后再打印
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-
+      console.log('本体码打印接口调用参数:', printParams);
+      
+      const response = await printBtBarcode(printParams);
+      
+      console.log('本体码打印接口响应:', response);
+      
+      message.success('打印指令已发送');
+      
       // 更新打印状态
       try {
-        const userInfo = getStorage<{ userName: string }>('userInfo');
-        const operator = userInfo?.userName || 'unknown';
-        
         await updatePrintStatus({
           id: parseInt(record.id),
           operator,
+          codeSn: record.codeSn,
+          printerId: printerSelect.selectedPrinter.printerId,
           btPrintCnt: 1,
           nbzPrintCnt: 0,
           wbzPrintCnt: 0,
         });
         
-        // message.success('打印任务已发送');
+        message.success(`使用 ${printerSelect.selectedPrinter.printerName} 打印成功`);
       } catch (error) {
         console.error('更新打印状态失败:', error);
         // 不影响打印流程，只记录错误
       }
+    } catch (error) {
+      console.error('打印接口调用失败:', error);
+      message.error(`打印失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      return;
     }
   };
 
   if (!record) return null;
-
-  // 生成二维码内容
-  const qrCodeContent = printData 
-    ? printData.codeSN
-    : '';
 
   return (
     <Modal
@@ -372,16 +203,34 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
       width={800}
       footer={
         <div className="modal-footer">
-          
           <Space>
+            {/* 打印机选择按钮 */}
+            <Button 
+              icon={<SettingOutlined />}
+              onClick={() => printerSelect.openModal('300')}
+            >
+              {printerSelect.selectedPrinter 
+                ? `打印机: ${printerSelect.selectedPrinter.printerName}` 
+                : '选择打印机'}
+            </Button>
+            
+            {/* 显示打印机状态 */}
+            {printerSelect.selectedPrinter && (
+              <Tag color={printerSelect.selectedPrinter.status === 'ONLINE' ? 'success' : 'error'}>
+                {printerSelect.selectedPrinter.status === 'ONLINE' ? '在线' : '离线'}
+              </Tag>
+            )}
+            
+            {/* 打印按钮 */}
             <Button 
               type="primary" 
               icon={<PrinterOutlined />}
               onClick={handlePrint}
-              disabled={loading || !printData}
+              disabled={loading || !printData || !printerSelect.selectedPrinter}
             >
               打印
             </Button>
+            
             <Button onClick={onClose}>
               取消
             </Button>
@@ -405,7 +254,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
               <div className="qr-section">
                 <div className="qr-code-container">
                   <QRCodeSVG
-                    value={printData.codeSNFull}
+                    value={String(printData.codeSNFull || printData.codeSN || '')}
                     size={60}
                     level="M"
                   />
@@ -413,30 +262,31 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
                 <div className="product-info">
                   <div className="info-line">
                     <div className='info-line1'>
-                      <span className="info-label">PN:</span>
-                    <span className="info-value">{printData.pnCode || ''}</span>
+                      <div className="info-label">PN:</div>
+                    <div className="info-value">{String(printData.pnCode || '')}</div>
                     </div>
                     <div className='info-line1'>
-                      <span className="info-label">Rev:</span>
-                    <span className="info-value">{printData.revCode || ''}</span>
+                      <div className="info-label">Rev:</div>
+                    <div className="info-value">{String(printData.revCode || '')}</div>
                     </div>
                   </div>
                   <div className="info-line">
-                    <span className="info-label">Model:</span>
-                    <span className="info-value">{printData.modelCode || ''}</span>
+                    <div className="info-label">Model:</div>
+                    <div className="info-value">{String(printData.modelCode || '')}</div>
                   </div>
                   <div className="info-line">
-                    <span className="info-label">SN:</span>
-                    <span className="info-value">{printData.codeSN || ''}</span>
+                    <div className="info-label">SN:</div>
+                    <div className="info-value">{String(printData.codeSN || '')}</div>
                   </div>
                 </div>
               </div>
 
               {/* 条形码区域 */}
               <div className="barcode-section">
-                {printData.fjList && printData.fjList.map((_, index) => (
+                {printData.fjList && Array.isArray(printData.fjList) && printData.fjList.map((barcodeValue, index) => (
                   <div key={index} className="barcode-item">
-                    <svg ref={(el) => { barcodeRefs.current[index] = el; }}></svg>
+                    <svg ref={(el) => { barcodeSvgRefs.current[index] = el; }}></svg>
+                    <div className="barcode-text">{String(barcodeValue || '')}</div>
                   </div>
                 ))}
               </div>
@@ -444,6 +294,16 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({
           )}
         </div>
       </Spin>
+      
+      {/* 打印机选择弹窗 */}
+      <PrinterSelectModal
+        visible={printerSelect.visible}
+        onCancel={printerSelect.closeModal}
+        onSelect={printerSelect.handleSelect}
+        title="选择本体码打印机"
+        onlineOnly={true}
+        department={printerSelect.department}
+      />
     </Modal>
   );
 };

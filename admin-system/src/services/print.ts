@@ -11,6 +11,9 @@ import type {
   BarcodeQueryParams,
   PrintApiResponse,
   ApiBarcodeRecord,
+  PrinterInfo,
+  PrinterQueryParams,
+  PrinterListResponse,
 } from '@/types/print';
 import {
   validatePrintContent,
@@ -213,6 +216,8 @@ export async function getBtPrintInfo(params: {
 export async function updatePrintStatus(params: {
   id: number;
   operator: string;
+  codeSn: string;
+  printerId: string;
   btPrintCnt?: number;
   nbzPrintCnt?: number;
   wbzPrintCnt?: number;
@@ -222,6 +227,69 @@ export async function updatePrintStatus(params: {
     return response;
   } catch (error) {
     console.error('更新打印状态失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 本体码打印接口
+ */
+export async function printBtBarcode(params: {
+  id: number;
+  operator: string;
+  codeSn: string;
+  printerId: string;
+  btPrintCnt: number;
+  nbzPrintCnt: number;
+  wbzPrintCnt: number;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/barcode/print/bt', params);
+    return response;
+  } catch (error) {
+    console.error('本体码打印失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 内包装码打印接口
+ */
+export async function printNbzBarcode(params: {
+  id: number;
+  operator: string;
+  codeSn: string;
+  printerId: string;
+  btPrintCnt: number;
+  nbzPrintCnt: number;
+  wbzPrintCnt: number;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/barcode/print/nbz', params);
+    return response;
+  } catch (error) {
+    console.error('内包装码打印失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 外包装码打印接口
+ */
+export async function printWbzBarcode(params: {
+  id: number;
+  operator: string;
+  codeSn: string;
+  printerId: string;
+  btPrintCnt: number;
+  nbzPrintCnt: number;
+  wbzPrintCnt: number;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/barcode/print/wbz', params);
+    return response;
+  } catch (error) {
+    console.error('外包装码打印失败:', error);
     throw error;
   }
 }
@@ -512,4 +580,61 @@ export function getPrintLogsByDateRange(startDate: string, endDate: string): Pri
     const logTime = new Date(log.printTime).getTime();
     return logTime >= start && logTime <= end;
   });
+}
+
+/**
+ * 获取打印机列表
+ */
+export async function getPrinterList(params?: PrinterQueryParams): Promise<PrinterListResponse> {
+  try {
+    const response = await get<PrinterListResponse>('/printer/list', {
+      pageNum: params?.pageNum || 1,
+      pageSize: params?.pageSize || 20,
+      status: params?.status || 'ALL',
+      department: params?.department,
+      keyword: params?.keyword,
+    });
+    return response;
+  } catch (error) {
+    console.error('获取打印机列表失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取可用打印机列表
+ */
+export async function getAvailablePrinters(department?: string): Promise<PrinterListResponse> {
+  try {
+    const response = await get<PrinterListResponse>('/printer/available', {
+      department,
+    });
+    return response;
+  } catch (error) {
+    console.error('获取可用打印机列表失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 检查打印机状态
+ */
+export async function checkPrinterStatus(printerId: string): Promise<PrinterInfo> {
+  try {
+    const response = await get<{
+      code: number;
+      success: boolean;
+      data: PrinterInfo;
+      errorMsg: string;
+      msg: string;
+    }>(`/printer/status/${printerId}`);
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response.errorMsg || '检查打印机状态失败');
+  } catch (error) {
+    console.error('检查打印机状态失败:', error);
+    throw error;
+  }
 }

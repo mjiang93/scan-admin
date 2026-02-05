@@ -67,7 +67,6 @@
 }
 
 .info-line {
-  font-size: 14px;
   line-height: 1.6;
   display: flex;
   align-items: center;
@@ -100,18 +99,34 @@
 
 .barcode-item {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 16px 0;
-  padding: 16px;
+  padding: 20px;
   background: white;
   border: 1px solid #e8e8e8;
   border-radius: 4px;
+  min-height: 120px;
 }
 
+.barcode-item canvas,
 .barcode-item svg {
   max-width: 100%;
   height: auto;
+  /* SVG 矢量格式，打印永不模糊 */
+  width: 100%;
+  object-fit: contain;
+  shape-rendering: crispEdges;
+}
+
+.barcode-text {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
 }
 
 /* 底部按钮区域 */
@@ -174,6 +189,11 @@
     border: 1px solid #333 !important;
     background: white !important;
     margin: 10px 0 !important;
+  }
+  
+  .barcode-text {
+    color: #000 !important;
+    font-weight: bold !important;
   }
   
   .barcode-header {

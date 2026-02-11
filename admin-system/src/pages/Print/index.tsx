@@ -118,6 +118,7 @@ export function PrintPage() {
         code09: values.code09, // 09码
         factoryCode: values.factoryCode, // 出厂编号
         projectCode: values.projectCode, // 项目编码
+        model: values.model, // 柜号
         deliveryDateStart,
         deliveryDateEnd,
         printStatus: values.printStatus !== undefined ? values.printStatus : undefined,
@@ -287,6 +288,12 @@ export function PrintPage() {
       width: 150,
     },
     {
+      title: '名称型号',
+      dataIndex: 'nameModel',
+      key: 'nameModel',
+      width: 150,
+    },
+    {
       title: '项目编码',
       dataIndex: 'projectCode',
       key: 'projectCode',
@@ -304,7 +311,6 @@ export function PrintPage() {
       key: 'factoryCode',
       width: 150,
     },
-    
     {
       title: 'SN码',
       dataIndex: 'codeSn',
@@ -317,11 +323,55 @@ export function PrintPage() {
       key: 'code09',
       width: 230,
     },
-     {
+    {
       title: '客户物料编码',
       dataIndex: 'materialCode',
       key: 'materialCode',
       width: 180,
+    },
+    {
+      title: 'PO行号',
+      dataIndex: 'pohh',
+      key: 'pohh',
+      width: 120,
+    },
+    {
+      title: '数量',
+      dataIndex: 'cnt',
+      key: 'cnt',
+      width: 80,
+    },
+    {
+      title: '单位',
+      dataIndex: 'unit',
+      key: 'unit',
+      width: 80,
+    },
+    {
+      title: '生产线',
+      dataIndex: 'lineName',
+      key: 'lineName',
+      width: 120,
+    },
+    {
+      title: '本体码Model',
+      dataIndex: 'model',
+      key: 'model',
+      width: 150,
+    },
+    {
+      title: '生产日期开始',
+      dataIndex: 'productionDateStart',
+      key: 'productionDateStart',
+      width: 120,
+      render: (date: string) => date ? new Date(parseInt(date)).toLocaleDateString() : '',
+    },
+    {
+      title: '生产日期结束',
+      dataIndex: 'productionDateEnd',
+      key: 'productionDateEnd',
+      width: 120,
+      render: (date: string) => date ? new Date(parseInt(date)).toLocaleDateString() : '',
     },
     {
       title: '送货日期',
@@ -337,10 +387,34 @@ export function PrintPage() {
       width: 100,
     },
     {
-      title: '附件',
+      title: '技术版本',
+      dataIndex: 'technicalVersion',
+      key: 'technicalVersion',
+      width: 100,
+    },
+    {
+      title: '附件数量',
       dataIndex: 'accessoryCnt',
       key: 'accessoryCnt',
       width: 80,
+    },
+    {
+      title: '本体码打印次数',
+      dataIndex: 'btPrintCnt',
+      key: 'btPrintCnt',
+      width: 120,
+    },
+    {
+      title: '内包装码打印次数',
+      dataIndex: 'nbzPrintCnt',
+      key: 'nbzPrintCnt',
+      width: 140,
+    },
+    {
+      title: '外包装码打印次数',
+      dataIndex: 'wbzPrintCnt',
+      key: 'wbzPrintCnt',
+      width: 140,
     },
     {
       title: '打印状态',
@@ -356,6 +430,32 @@ export function PrintPage() {
         const config = statusMap[status as 0 | 1 | 2] || statusMap[0];
         return <Tag color={config.color}>{config.text}</Tag>;
       },
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      width: 160,
+      render: (date: string) => date ? new Date(parseInt(date)).toLocaleString() : '',
+    },
+    {
+      title: '创建者ID',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: 120,
+    },
+    {
+      title: '修改时间',
+      dataIndex: 'modifyTime',
+      key: 'modifyTime',
+      width: 160,
+      render: (date: string) => date ? new Date(parseInt(date)).toLocaleString() : '',
+    },
+    {
+      title: '修改者ID',
+      dataIndex: 'modifier',
+      key: 'modifier',
+      width: 120,
     },
     {
       title: '操作',
@@ -450,6 +550,10 @@ export function PrintPage() {
             <Input placeholder="请输入" style={{ width: 150 }} />
           </Form.Item>
           
+          <Form.Item label="柜号" name="model">
+            <Input placeholder="请输入" style={{ width: 150 }} />
+          </Form.Item>
+          
           <Form.Item label="送货日期" name="deliveryDateRange">
             <RangePicker 
               style={{ width: 240 }} 
@@ -529,7 +633,7 @@ export function PrintPage() {
           dataSource={dataSource}
           rowSelection={rowSelection}
           loading={loading}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 3500 }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,

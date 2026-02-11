@@ -50,6 +50,7 @@ export interface BarcodeQueryParams {
   code09?: string; // 09码
   factoryCode?: string; // 出厂编号
   projectCode?: string; // 项目编码
+  model?: string; // 柜号
   deliveryDateStart?: string;
   deliveryDateEnd?: string;
   printStatus?: number; // 0-未打印 1-部份打印 2-已打印

@@ -18,11 +18,12 @@ import {
 import { 
   SearchOutlined, 
   ReloadOutlined,
-  DownloadOutlined
+  DownloadOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { Dayjs } from 'dayjs';
-import { queryBarcodeRecords, createCode, exportBarcodeRecords } from '@/services/print';
+import { queryBarcodeRecords, createCode, exportBarcodeRecords, batchDeleteRecords } from '@/services/print';
 import type { BarcodeRecord, BarcodeQueryParams, ApiBarcodeRecord } from '@/types/print';
 import BarcodeModal from '@/components/BarcodeModal';
 import InnerPackagingModal from '@/components/InnerPackagingModal';
@@ -212,6 +213,47 @@ export function PrintPage() {
       setLoading(false);
     }
   }, []);
+
+  // 批量删除
+  const handleBatchDelete = useCallback(async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请选择要删除的记录');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // 获取当前用户信息
+      const userInfo = localStorage.getItem('userInfo');
+      const operator = userInfo ? JSON.parse(userInfo).userId : '';
+      
+      if (!operator) {
+        message.error('未获取到用户信息');
+        return;
+      }
+
+      const response = await batchDeleteRecords({
+        ids: selectedRowKeys.map(key => Number(key)),
+        operator: operator,
+      });
+
+      if (response.success) {
+        message.success(`成功删除 ${selectedRowKeys.length} 条记录`);
+        // 清空选择
+        setSelectedRowKeys([]);
+        // 重新加载数据
+        loadData(pagination.current, pagination.pageSize, searchParamsRef.current);
+      } else {
+        message.error(response.errorMsg || '删除失败');
+      }
+    } catch (error) {
+      console.error('删除失败:', error);
+      message.error('删除失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRowKeys, loadData, pagination]);
 
   // 本体操作
   const handleBodyOperation = useCallback((record: BarcodeRecord) => {
@@ -618,6 +660,23 @@ export function PrintPage() {
           >
             导出Excel
           </Button>
+          <Popconfirm
+            title="确认删除"
+            description={`确定要删除选中的 ${selectedRowKeys.length} 条记录吗？此操作不可恢复。`}
+            onConfirm={handleBatchDelete}
+            okText="确定"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+          >
+            <Button 
+              danger
+              icon={<DeleteOutlined />}
+              disabled={selectedRowKeys.length === 0}
+              loading={loading}
+            >
+              批量删除
+            </Button>
+          </Popconfirm>
         </Space>
         {selectedRowKeys.length > 0 && (
           <span style={{ marginLeft: 16, color: '#666' }}>

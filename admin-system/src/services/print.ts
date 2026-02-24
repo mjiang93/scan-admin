@@ -151,6 +151,22 @@ export async function batchEditDrawingVersion(params: {
 }
 
 /**
+ * 批量删除记录
+ */
+export async function batchDeleteRecords(params: {
+  ids: number[];
+  operator: string;
+}): Promise<PrintApiResponse<unknown>> {
+  try {
+    const response = await post<PrintApiResponse<unknown>>('/pc/delbatch', params);
+    return response;
+  } catch (error) {
+    console.error('批量删除记录失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 同步ERP系统
  */
 export async function syncErpSystem(params: {

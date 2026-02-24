@@ -148,16 +148,24 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
           </Col>
           <Col span={12}>
             <Form.Item
+              label="流水号"
+              name="serialNumber"
+              rules={[{ required: true, message: '请输入产品编码' }]}
+            >
+              <Input disabled className="disabled-input" />
+            </Form.Item>
+          </Col>
+
+          
+          <Col span={12}>
+            <Form.Item
               label="产品名称"
               name="productName"
             >
               <Input />
             </Form.Item>
           </Col>
-        </Row>
-
-        {/* 第二行：项目编码、单据编码 */}
-        <Row gutter={16}>
+        
           <Col span={12}>
             <Form.Item
               label="项目编码"
@@ -176,10 +184,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               <Input />
             </Form.Item>
           </Col>
-        </Row>
-
-        {/* 第三行：供应商代码、柜号 */}
-        <Row gutter={16}>
+       
           <Col span={12}>
             <Form.Item
               label="供应商代码"
@@ -197,10 +202,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               <Input placeholder="本体model" />
             </Form.Item>
           </Col>
-        </Row>
-
-        {/* 第四行：客户物料编码、po行号 */}
-        <Row gutter={16}>
+        
           <Col span={12}>
             <Form.Item
               label="客户物料编码"
@@ -221,10 +223,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               <Input />
             </Form.Item>
           </Col>
-        </Row>
-
-        {/* 第五行：生产日期 */}
-        <Row gutter={16}>
+       
           <Col span={12}>
             <Form.Item
               label="生产日期"
